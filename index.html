@@ -3,23 +3,23 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap">
 <style>
 /* Layout: ficha de show. Cabecera + integrantes, matriz con filtro por músico, cancionero plegable. */
-:root{
-  --bg:#F2F3F0; --surface:#FFFFFF; --ink:#15181B; --muted:#5E656B; --line:#D9DCD7;
-  --accent:#2447D6; --accent-soft:#E3E9FC; --chord:#B4381C;
-  --r1:#177A63; --r2:#B36B00; --r3:#A8336F; --r0:#5E656B;
-  --tent:#8A6A00;
+:root{ /* Vista Oscuro (por defecto) */
+  --bg:#111315; --surface:#1A1D20; --ink:#F5F6F3; --muted:#A3AAB0; --line:#30353A;
+  --accent:#8CA4FF; --accent-soft:#232C4D; --chord:#FF9A7A; --rt-ink:#111315;
+  --r1:#4FC9A8; --r2:#F0B04A; --r3:#F07CB4; --r0:#A3AAB0; --tent:#E8C65A;
   --f-display:'Bricolage Grotesque','Arial Narrow',Arial,sans-serif;
   --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
   --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#111315; --surface:#1A1D20; --ink:#ECEDEA; --muted:#9AA1A7; --line:#2E3338;
-  --accent:#8CA4FF; --accent-soft:#232C4D; --chord:#FF9A7A;
-  --r1:#4FC9A8; --r2:#F0B04A; --r3:#F07CB4; --r0:#9AA1A7; --tent:#E8C65A; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#111315; --surface:#1A1D20; --ink:#ECEDEA; --muted:#9AA1A7; --line:#2E3338;
-  --accent:#8CA4FF; --accent-soft:#232C4D; --chord:#FF9A7A;
-  --r1:#4FC9A8; --r2:#F0B04A; --r3:#F07CB4; --r0:#9AA1A7; --tent:#E8C65A; color-scheme:dark}
+:root[data-vista="claro"]{
+  --bg:#F2F3F0; --surface:#FFFFFF; --ink:#15181B; --muted:#565D63; --line:#D5D8D3;
+  --accent:#2447D6; --accent-soft:#E3E9FC; --chord:#B4381C; --rt-ink:#FFFFFF;
+  --r1:#177A63; --r2:#A35F00; --r3:#A8336F; --r0:#565D63; --tent:#7A5C00; color-scheme:light}
+:root[data-vista="azul"]{
+  --bg:#1B3558; --surface:#244770; --ink:#F2F7FF; --muted:#B8CBE3; --line:#3B6396;
+  --accent:#FFD36B; --accent-soft:#2F5A8C; --chord:#FFD36B; --rt-ink:#10243D;
+  --r1:#62D8B9; --r2:#FFB347; --r3:#FF8EC0; --r0:#B8CBE3; --tent:#FFD36B; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
   padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -51,10 +51,8 @@ table.mx{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;fo
 .mx .art{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
 .mx .num{width:34px;color:var(--muted);font-family:var(--f-mono);font-size:.78rem}
 tr.rh th{text-align:left;background:var(--bg);position:static;padding:12px 10px 8px}
-.rt{font-family:var(--f-display);font-weight:800;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:3px;color:#fff;margin-right:8px;white-space:nowrap}
+.rt{font-family:var(--f-display);font-weight:800;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:3px;color:var(--rt-ink);margin-right:8px;white-space:nowrap}
 .rt.r1{background:var(--r1)}.rt.r2{background:var(--r2)}.rt.r3{background:var(--r3)}.rt.r0{background:var(--r0)}
-:root[data-theme="dark"] .rt{color:#111315}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rt{color:#111315}}
 .rc{color:var(--muted);font-size:.82rem}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:.8rem;white-space:nowrap}
 .pill small{font-weight:500;font-size:.72rem;opacity:.9}
@@ -85,13 +83,26 @@ pre.chart{margin:0;font-family:var(--f-mono);font-size:var(--cs,14px);line-heigh
 .ch{color:var(--chord);font-weight:700}
 .sec{color:var(--muted);font-weight:700}
 .nochart{margin:0;padding:12px 14px;background:var(--bg);border-radius:6px;color:var(--muted)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+.dock{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:-16px}
+.dock .grp{display:flex;gap:6px;align-items:center}
+.dock .lbl{font-size:.85rem;color:var(--muted);margin-right:2px}
+button.v{font:inherit;font-size:.9rem;font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;min-height:40px}
+button.v[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+button.v i{width:22px;height:22px;border-radius:50%;border:1px solid #8888;display:inline-block}
+button.v[data-v="oscuro"] i{background:linear-gradient(135deg,#111315 55%,#F5F6F3 55%)}
+button.v[data-v="claro"] i{background:linear-gradient(135deg,#F2F3F0 55%,#15181B 55%)}
+button.v[data-v="azul"] i{background:linear-gradient(135deg,#1B3558 55%,#FFD36B 55%)}
+button.sz{min-height:40px;min-width:44px}
 .tools{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
 .tools .lbl{font-size:.85rem;color:var(--muted)}
 .empty{color:var(--muted);padding:12px}
 @media (max-width:520px){.members{grid-template-columns:1fr 1fr}}
 @media (prefers-reduced-motion:no-preference){details.song{transition:border-color .15s}details.song:target{border-color:var(--accent)}}
 </style>
+<script>try{var __v=localStorage.getItem("tm-vista");if(__v==="claro"||__v==="azul"||__v==="oscuro")document.documentElement.setAttribute("data-vista",__v)}catch(e){}</script>
 <div class="wrap">
+<div class="dock" role="toolbar" aria-label="Vista"><div class="grp"><span class="lbl">Vista</span><button class="v" type="button" data-v="oscuro" aria-pressed="true"><i></i>Oscuro</button><button class="v" type="button" data-v="claro" aria-pressed="false"><i></i>Claro</button><button class="v" type="button" data-v="azul" aria-pressed="false"><i></i>Azul</button></div><div class="grp"><span class="lbl">Letra</span><button class="sz" type="button" id="sm" aria-label="Achicar letra">A−</button><button class="sz" type="button" id="lg" aria-label="Agrandar letra">A+</button></div></div>
 <header>
   <p class="eyebrow">Repertorio de la banda · 28 temas en 3 rondas</p>
   <h1>Cancionero Tocamos Música</h1>
@@ -116,7 +127,7 @@ pre.chart{margin:0;font-family:var(--f-mono);font-size:var(--cs,14px);line-heigh
 <section aria-labelledby="h-c">
   <h2 id="h-c">Acordes</h2>
   <p class="sub">Tomados de Tocamos Canciones.docx. Los acordes van en color sobre cada verso.</p>
-  <div class="tools"><span class="lbl">Tamaño de letra</span><button class="sz" type="button" id="sm" aria-label="Achicar letra">A−</button><button class="sz" type="button" id="lg" aria-label="Agrandar letra">A+</button><button class="sz" type="button" id="op">Abrir todos</button></div>
+  <div class="tools"><button class="sz" type="button" id="op">Abrir todos</button></div>
   <div class="songs" id="songs"><details class="song" id="s-no-tan-distintos" data-players="d s g"><summary><span class="rt r1">R1</span><span class="st">No Tan Distintos</span><span class="art">Sumo</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span></span></summary><div class="sb"><p class="note">Los tres.</p><a class="ext" href="https://www.google.com/search?q=acordes%20No%20Tan%20Distintos%20Sumo" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">Intro Bm7 - Em/d - A - Bm7
 
 <span class="ch">Bm7</span>
@@ -1777,6 +1788,9 @@ Prefiere esta noche
 </div>
 <script>
 (function(){
+  function setVista(v){document.documentElement.setAttribute('data-vista',v);document.querySelectorAll('button.v').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-v')===v?'true':'false')});try{localStorage.setItem('tm-vista',v)}catch(e){}}
+  document.querySelectorAll('button.v').forEach(function(b){b.addEventListener('click',function(){setVista(b.getAttribute('data-v'))})});
+  setVista(document.documentElement.getAttribute('data-vista')||'oscuro');
   var cur='all';
   function apply(){
     document.querySelectorAll('[data-players]').forEach(function(el){
