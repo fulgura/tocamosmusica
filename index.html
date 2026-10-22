@@ -1,0 +1,1806 @@
+<title>Cancionero Tocamos Música</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: ficha de show. Cabecera + integrantes, matriz con filtro por músico, cancionero plegable. */
+:root{
+  --bg:#F2F3F0; --surface:#FFFFFF; --ink:#15181B; --muted:#5E656B; --line:#D9DCD7;
+  --accent:#2447D6; --accent-soft:#E3E9FC; --chord:#B4381C;
+  --r1:#177A63; --r2:#B36B00; --r3:#A8336F; --r0:#5E656B;
+  --tent:#8A6A00;
+  --f-display:'Bricolage Grotesque','Arial Narrow',Arial,sans-serif;
+  --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111315; --surface:#1A1D20; --ink:#ECEDEA; --muted:#9AA1A7; --line:#2E3338;
+  --accent:#8CA4FF; --accent-soft:#232C4D; --chord:#FF9A7A;
+  --r1:#4FC9A8; --r2:#F0B04A; --r3:#F07CB4; --r0:#9AA1A7; --tent:#E8C65A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111315; --surface:#1A1D20; --ink:#ECEDEA; --muted:#9AA1A7; --line:#2E3338;
+  --accent:#8CA4FF; --accent-soft:#232C4D; --chord:#FF9A7A;
+  --r1:#4FC9A8; --r2:#F0B04A; --r3:#F07CB4; --r0:#9AA1A7; --tent:#E8C65A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.2rem,7vw,3.8rem);line-height:.98;letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:60ch}
+.eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 8px}
+h2{font-family:var(--f-display);font-weight:800;font-size:1.6rem;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 16px;max-width:70ch}
+.members{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.mem{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.mem b{font-family:var(--f-display);font-size:1.05rem}
+.mem span{color:var(--muted);font-size:.9rem}
+.mem em{font-style:normal;font-family:var(--f-mono);font-size:.78rem;color:var(--accent);margin-top:4px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar .lbl{font-size:.85rem;color:var(--muted);margin-right:4px}
+button.f,button.sz{font:inherit;font-size:.9rem;font-weight:600;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+button.f.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table.mx{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;font-size:.92rem}
+.mx th,.mx td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
+.mx thead th{position:sticky;top:0;background:var(--surface);font-family:var(--f-display);font-size:.9rem;z-index:2}
+.mx thead small{display:block;font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.72rem}
+.mx .tt{text-align:left;min-width:210px;position:sticky;left:0;background:var(--surface);z-index:1;font-weight:600}
+.mx thead .tt{z-index:3}
+.mx .tt a{color:var(--ink);text-decoration:none}.mx .tt a:hover{text-decoration:underline}
+.mx .art{display:block;font-weight:400;color:var(--muted);font-size:.78rem}
+.mx .num{width:34px;color:var(--muted);font-family:var(--f-mono);font-size:.78rem}
+tr.rh th{text-align:left;background:var(--bg);position:static;padding:12px 10px 8px}
+.rt{font-family:var(--f-display);font-weight:800;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:3px;color:#fff;margin-right:8px;white-space:nowrap}
+.rt.r1{background:var(--r1)}.rt.r2{background:var(--r2)}.rt.r3{background:var(--r3)}.rt.r0{background:var(--r0)}
+:root[data-theme="dark"] .rt{color:#111315}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rt{color:#111315}}
+.rc{color:var(--muted);font-size:.82rem}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:.8rem;white-space:nowrap}
+.pill small{font-weight:500;font-size:.72rem;opacity:.9}
+.pill.tent{background:transparent;border:1px dashed var(--tent);color:var(--tent)}
+.dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--line)}
+.go{font-size:.82rem;font-weight:600;white-space:nowrap}.go.miss{color:var(--muted);font-weight:500}
+.mx.hl-d [data-m]:not([data-m="d"]),.sel{}
+tr.sr[hidden],details.song[hidden]{display:none!important}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;font-size:.84rem;color:var(--muted);align-items:center}
+.legend .pill{font-size:.74rem}
+.warn{margin-top:10px;font-size:.88rem;color:var(--muted);max-width:75ch}
+.songs{display:flex;flex-direction:column;gap:8px}
+details.song{background:var(--surface);border:1px solid var(--line);border-radius:6px;scroll-margin-top:12px}
+details.song summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:12px 14px}
+details.song summary::-webkit-details-marker{display:none}
+details.song summary::after{content:"+";margin-left:auto;font-family:var(--f-mono);color:var(--muted)}
+details.song[open] summary::after{content:"–"}
+details.song .rt{margin:0}
+.st{font-family:var(--f-display);font-weight:800;font-size:1.1rem}
+.song .art{color:var(--muted);font-size:.88rem}
+.chips{display:flex;flex-wrap:wrap;gap:4px;flex-basis:100%}
+.chip{font-size:.72rem;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.chip.tent{background:transparent;border:1px dashed var(--tent);color:var(--tent)}
+.sb{padding:0 14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.note{margin:0;color:var(--muted);font-size:.9rem}
+.ext{font-size:.84rem;font-weight:600}
+pre.chart{margin:0;font-family:var(--f-mono);font-size:var(--cs,14px);line-height:1.45;white-space:pre;overflow-x:auto;padding:14px;background:var(--bg);border-radius:6px;tab-size:4}
+.ch{color:var(--chord);font-weight:700}
+.sec{color:var(--muted);font-weight:700}
+.nochart{margin:0;padding:12px 14px;background:var(--bg);border-radius:6px;color:var(--muted)}
+.tools{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.tools .lbl{font-size:.85rem;color:var(--muted)}
+.empty{color:var(--muted);padding:12px}
+@media (max-width:520px){.members{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:no-preference){details.song{transition:border-color .15s}details.song:target{border-color:var(--accent)}}
+</style>
+<div class="wrap">
+<header>
+  <p class="eyebrow">Repertorio de la banda · 28 temas en 3 rondas</p>
+  <h1>Cancionero Tocamos Música</h1>
+  <p>Quién toca cada tema y los acordes para ensayar. Tocá un nombre en la matriz para abrir el tema, o filtrá por músico para ver solo lo tuyo.</p>
+</header>
+
+<section aria-labelledby="h-int">
+  <h2 id="h-int">Integrantes</h2>
+  <p class="sub">Los temas se cuentan sin las participaciones marcadas con “?”.</p>
+  <ul class="members"><li class="mem d"><b>Diego Correa</b><span>Guitarra · Voz</span><em>23 temas</em></li><li class="mem s"><b>Sebastian Vazquez Montoto</b><span>Batería</span><em>22 temas</em></li><li class="mem g"><b>Sergio Alvarez</b><span>Bajo · Voz</span><em>22 temas</em></li><li class="mem a"><b>Agustín Alvarez</b><span>Teclado</span><em>9 temas</em></li><li class="mem j"><b>Juan Alvarez</b><span>Guitarra · Voz</span><em>9 temas</em></li><li class="mem c"><b>Cyntia</b><span>Voz</span><em>3 temas</em></li></ul>
+</section>
+
+<section aria-labelledby="h-mx">
+  <h2 id="h-mx">Quién toca cada tema</h2>
+  <p class="sub">Ronda 1 es el tridente original: Diego, Sergio y Sebastian. Las otras rondas suman teclado, Juan y Cyn.</p>
+  <div class="bar" role="group" aria-label="Filtrar por músico"><span class="lbl">Ver temas de:</span><button class="f on" data-f="all" type="button">Todos</button><button class="f" data-f="d" type="button">Diego</button><button class="f" data-f="s" type="button">Seba</button><button class="f" data-f="g" type="button">Sergio</button><button class="f" data-f="a" type="button">Agustín</button><button class="f" data-f="j" type="button">Juan</button><button class="f" data-f="c" type="button">Cyn</button></div>
+  <div class="scroll"><table class="mx"><thead><tr><th class="num">#</th><th scope="col" class="tt">Tema</th><th scope="col" class="mh" data-m="d"><span>Diego</span><small>Gtr · Voz</small></th><th scope="col" class="mh" data-m="s"><span>Seba</span><small>Batería</small></th><th scope="col" class="mh" data-m="g"><span>Sergio</span><small>Bajo</small></th><th scope="col" class="mh" data-m="a"><span>Agustín</span><small>Teclado</small></th><th scope="col" class="mh" data-m="j"><span>Juan</span><small>Guitarra</small></th><th scope="col" class="mh" data-m="c"><span>Cyn</span><small>Voz</small></th><th scope="col">Acordes</th></tr></thead><tbody data-r="1"><tr class="rh"><th colspan="9" scope="colgroup"><span class="rt r1">Ronda 1</span><span class="rc">7 temas</span></th></tr><tr class="sr" data-players="d s g"><td class="num">1</td><th scope="row" class="tt"><a href="#s-no-tan-distintos">No Tan Distintos</a><span class="art">Sumo</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-no-tan-distintos">Acordes</a></td></tr><tr class="sr" data-players="d s g c"><td class="num">2</td><th scope="row" class="tt"><a href="#s-chau">Chau</a><span class="art">No Te Va a Gustar</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="p c t" data-m="c"><span class="pill tent">Voz <small>a confirmar</small><i> ?</i></span></td><td class="lk"><a class="go" href="#s-chau">Acordes</a></td></tr><tr class="sr" data-players="d s g a"><td class="num">3</td><th scope="row" class="tt"><a href="#s-el-fantasma">El Fantasma</a><span class="art">Árbol</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="p a" data-m="a"><span class="pill">Teclado <small>colchón</small></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-el-fantasma">Acordes</a></td></tr><tr class="sr" data-players="d s g a"><td class="num">4</td><th scope="row" class="tt"><a href="#s-desconfio">Desconfío</a><span class="art">Pappo</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="p a" data-m="a"><span class="pill">Teclado <small>piano</small></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-desconfio">Acordes</a></td></tr><tr class="sr" data-players="d s g a"><td class="num">5</td><th scope="row" class="tt"><a href="#s-cabildo">Cabildo y Juramento</a><span class="art">Conociendo Rusia</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="p a" data-m="a"><span class="pill">Teclado <small>colchón</small></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-cabildo">Acordes</a></td></tr><tr class="sr" data-players="d s g a"><td class="num">6</td><th scope="row" class="tt"><a href="#s-crimenes">Crímenes Perfectos</a></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="p a" data-m="a"><span class="pill">Teclado <small>colchón</small></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go miss" href="https://www.google.com/search?q=acordes%20Cr%C3%ADmenes%20Perfectos%20" target="_blank" rel="noopener">Buscar online</a></td></tr><tr class="sr" data-players="d s g"><td class="num">7</td><th scope="row" class="tt"><a href="#s-todo-suena">Todo Suena Igual a Vos</a></th><td class="p d t" data-m="d"><span class="pill tent">Guitarra<i> ?</i></span></td><td class="p s t" data-m="s"><span class="pill tent">Batería<i> ?</i></span></td><td class="p g t" data-m="g"><span class="pill tent">Bajo<i> ?</i></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go miss" href="https://www.google.com/search?q=acordes%20Todo%20Suena%20Igual%20a%20Vos%20" target="_blank" rel="noopener">Buscar online</a></td></tr></tbody><tbody data-r="2"><tr class="rh"><th colspan="9" scope="colgroup"><span class="rt r2">Ronda 2</span><span class="rc">9 temas</span></th></tr><tr class="sr" data-players="d s g"><td class="num">1</td><th scope="row" class="tt"><a href="#s-masacre">Masacre en el Puticlub</a></th><td class="p d t" data-m="d"><span class="pill tent">Guitarra<i> ?</i></span></td><td class="p s t" data-m="s"><span class="pill tent">Batería<i> ?</i></span></td><td class="p g t" data-m="g"><span class="pill tent">Bajo<i> ?</i></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-masacre">Acordes</a></td></tr><tr class="sr" data-players="d c"><td class="num">2</td><th scope="row" class="tt"><a href="#s-amanece">Amanece en la Ruta</a></th><td class="p d" data-m="d"><span class="pill">Guitarra <small>acústica</small></span></td><td class="n" data-m="s"><span class="dot"></span></td><td class="n" data-m="g"><span class="dot"></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="p c" data-m="c"><span class="pill">Voz</span></td><td class="lk"><a class="go" href="#s-amanece">Acordes</a></td></tr><tr class="sr" data-players="d s g"><td class="num">3</td><th scope="row" class="tt"><a href="#s-anda-diciendo">El Anda Diciendo</a><span class="art">Sueter</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-anda-diciendo">Acordes</a></td></tr><tr class="sr" data-players="d s g"><td class="num">4</td><th scope="row" class="tt"><a href="#s-juntos">Juntos a la Par</a></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go miss" href="https://www.google.com/search?q=acordes%20Juntos%20a%20la%20Par%20" target="_blank" rel="noopener">Buscar online</a></td></tr><tr class="sr" data-players="d s g c"><td class="num">5</td><th scope="row" class="tt"><a href="#s-raros">Raros Peinados Nuevos</a><span class="art">Charly García</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="p c" data-m="c"><span class="pill">Voz <small>parte y coro</small></span></td><td class="lk"><a class="go" href="#s-raros">Acordes</a></td></tr><tr class="sr" data-players="d s g a"><td class="num">6</td><th scope="row" class="tt"><a href="#s-mesa">Yo No Me Sentaría en Tu Mesa</a><span class="art">Los Fabulosos Cadillacs</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="p a" data-m="a"><span class="pill">Teclado</span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-mesa">Acordes</a></td></tr><tr class="sr" data-players="d s g j"><td class="num">7</td><th scope="row" class="tt"><a href="#s-isabel">Isabel</a><span class="art">Ratones Paranoicos</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="p j" data-m="j"><span class="pill">Guitarra</span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-isabel">Acordes</a></td></tr><tr class="sr" data-players="d s g j"><td class="num">8</td><th scope="row" class="tt"><a href="#s-wadu">Wadu Wadu</a><span class="art">Virus</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="p j" data-m="j"><span class="pill">Guitarra</span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-wadu">Acordes</a></td></tr><tr class="sr" data-players="d s g j"><td class="num">9</td><th scope="row" class="tt"><a href="#s-cieguitos">Pensé Que Se Trataba de Cieguitos</a><span class="art">Twist</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="p j" data-m="j"><span class="pill">Guitarra</span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-cieguitos">Acordes</a></td></tr></tbody><tbody data-r="3"><tr class="rh"><th colspan="9" scope="colgroup"><span class="rt r3">Ronda 3</span><span class="rc">12 temas</span></th></tr><tr class="sr" data-players="d s g j"><td class="num">1</td><th scope="row" class="tt"><a href="#s-rock-del-gato">El Rock del Gato</a><span class="art">Ratones Paranoicos</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="p j" data-m="j"><span class="pill">Guitarra</span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-rock-del-gato">Acordes</a></td></tr><tr class="sr" data-players="d s g j"><td class="num">2</td><th scope="row" class="tt"><a href="#s-ligera">De Música Ligera</a><span class="art">Soda Stereo</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="p j" data-m="j"><span class="pill">Guitarra</span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-ligera">Acordes</a></td></tr><tr class="sr" data-players="d s g a j"><td class="num">3</td><th scope="row" class="tt"><a href="#s-pozo">Mi Novia Se Cayó en un Pozo Ciego</a></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="p a" data-m="a"><span class="pill">Teclado</span></td><td class="p j" data-m="j"><span class="pill">Guitarra</span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-pozo">Acordes</a></td></tr><tr class="sr" data-players="d s g j"><td class="num">4</td><th scope="row" class="tt"><a href="#s-pedazo">Rock del Pedazo</a></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="p j" data-m="j"><span class="pill">Guitarra</span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-pedazo">Acordes</a></td></tr><tr class="sr" data-players="d s g"><td class="num">5</td><th scope="row" class="tt"><a href="#s-maravillosa">Maravillosa Esta Noche</a></th><td class="p d t" data-m="d"><span class="pill tent">Guitarra<i> ?</i></span></td><td class="p s t" data-m="s"><span class="pill tent">Batería<i> ?</i></span></td><td class="p g t" data-m="g"><span class="pill tent">Bajo<i> ?</i></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-maravillosa">Acordes</a></td></tr><tr class="sr" data-players="d s g a"><td class="num">6</td><th scope="row" class="tt"><a href="#s-loca">Loco (Tu Forma de Ser)</a><span class="art">Los Auténticos Decadentes</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="p a" data-m="a"><span class="pill">Teclado</span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-loca">Acordes</a></td></tr><tr class="sr" data-players="d s g c"><td class="num">7</td><th scope="row" class="tt"><a href="#s-mi-enfermedad">Mi Enfermedad</a></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="p c" data-m="c"><span class="pill">Voz <small>canta</small></span></td><td class="lk"><a class="go" href="#s-mi-enfermedad">Acordes</a></td></tr><tr class="sr" data-players="d s g a j"><td class="num">8</td><th scope="row" class="tt"><a href="#s-flaca">Flaca</a><span class="art">Andrés Calamaro</span></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="p a" data-m="a"><span class="pill">Teclado</span></td><td class="p j" data-m="j"><span class="pill">Guitarra</span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-flaca">Acordes</a></td></tr><tr class="sr" data-players="d s g a"><td class="num">9</td><th scope="row" class="tt"><a href="#s-me-gustas">Me Gustas Muchísimo</a></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="p a" data-m="a"><span class="pill">Teclado</span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-me-gustas">Acordes</a></td></tr><tr class="sr" data-players="d s g"><td class="num">10</td><th scope="row" class="tt"><a href="#s-todo-sigue-igual">Todo Sigue Igual</a><span class="art">Viejas Locas</span></th><td class="p d t" data-m="d"><span class="pill tent">Guitarra<i> ?</i></span></td><td class="p s t" data-m="s"><span class="pill tent">Batería<i> ?</i></span></td><td class="p g t" data-m="g"><span class="pill tent">Bajo<i> ?</i></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-todo-sigue-igual">Acordes</a></td></tr><tr class="sr" data-players="d s g j"><td class="num">11</td><th scope="row" class="tt"><a href="#s-paloma">Paloma</a></th><td class="p d" data-m="d"><span class="pill">Guitarra</span></td><td class="p s" data-m="s"><span class="pill">Batería</span></td><td class="p g" data-m="g"><span class="pill">Bajo</span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="p j" data-m="j"><span class="pill">Guitarra</span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-paloma">Acordes</a></td></tr><tr class="sr" data-players="d s g"><td class="num">12</td><th scope="row" class="tt"><a href="#s-hacelo">Hacelo Por Mí</a></th><td class="p d t" data-m="d"><span class="pill tent">Guitarra<i> ?</i></span></td><td class="p s t" data-m="s"><span class="pill tent">Batería<i> ?</i></span></td><td class="p g t" data-m="g"><span class="pill tent">Bajo<i> ?</i></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-hacelo">Acordes</a></td></tr></tbody><tbody data-r="0"><tr class="rh"><th colspan="9" scope="colgroup"><span class="rt r0">Fuera de las rondas</span><span class="rc">4 temas</span></th></tr><tr class="sr" data-players=""><td class="num">·</td><th scope="row" class="tt"><a href="#s-cantaloupe">Cantaloupe Island</a><span class="art">Herbie Hancock</span></th><td class="n" data-m="d"><span class="dot"></span></td><td class="n" data-m="s"><span class="dot"></span></td><td class="n" data-m="g"><span class="dot"></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-cantaloupe">Acordes</a></td></tr><tr class="sr" data-players=""><td class="num">·</td><th scope="row" class="tt"><a href="#s-vasos">Vasos Vacíos</a><span class="art">Los Fabulosos Cadillacs</span></th><td class="n" data-m="d"><span class="dot"></span></td><td class="n" data-m="s"><span class="dot"></span></td><td class="n" data-m="g"><span class="dot"></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-vasos">Acordes</a></td></tr><tr class="sr" data-players=""><td class="num">·</td><th scope="row" class="tt"><a href="#s-friday">Friday I&#x27;m in Love</a><span class="art">The Cure</span></th><td class="n" data-m="d"><span class="dot"></span></td><td class="n" data-m="s"><span class="dot"></span></td><td class="n" data-m="g"><span class="dot"></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-friday">Acordes</a></td></tr><tr class="sr" data-players=""><td class="num">·</td><th scope="row" class="tt"><a href="#s-furia">En la Ciudad de la Furia</a><span class="art">Soda Stereo</span></th><td class="n" data-m="d"><span class="dot"></span></td><td class="n" data-m="s"><span class="dot"></span></td><td class="n" data-m="g"><span class="dot"></span></td><td class="n" data-m="a"><span class="dot"></span></td><td class="n" data-m="j"><span class="dot"></span></td><td class="n" data-m="c"><span class="dot"></span></td><td class="lk"><a class="go" href="#s-furia">Acordes</a></td></tr></tbody></table></div>
+  <div class="legend"><span><span class="pill">Guitarra</span> toca</span><span><span class="pill tent">Voz <i>?</i></span> a definir o a confirmar</span><span>Detalle chico: cómo toca (colchón, piano, parte y coro)</span></div>
+  <p class="warn">Ronda 3 tiene 12 temas en la lista (el pedido original decía 11). Ronda 2 suma Wadu Wadu y Pensé Que Se Trataba de Cieguitos, que llegaron al final de la lista. Los temas de “Fuera de las rondas” están en el archivo pero no en ninguna ronda.</p>
+</section>
+
+<section aria-labelledby="h-c">
+  <h2 id="h-c">Acordes</h2>
+  <p class="sub">Tomados de Tocamos Canciones.docx. Los acordes van en color sobre cada verso.</p>
+  <div class="tools"><span class="lbl">Tamaño de letra</span><button class="sz" type="button" id="sm" aria-label="Achicar letra">A−</button><button class="sz" type="button" id="lg" aria-label="Agrandar letra">A+</button><button class="sz" type="button" id="op">Abrir todos</button></div>
+  <div class="songs" id="songs"><details class="song" id="s-no-tan-distintos" data-players="d s g"><summary><span class="rt r1">R1</span><span class="st">No Tan Distintos</span><span class="art">Sumo</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span></span></summary><div class="sb"><p class="note">Los tres.</p><a class="ext" href="https://www.google.com/search?q=acordes%20No%20Tan%20Distintos%20Sumo" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">Intro Bm7 - Em/d - A - Bm7
+
+<span class="ch">Bm7</span>
+People moving every day
+        Em           D.
+You know they move so slow
+<span class="ch">         A</span>
+Do they know why they&#x27;re going?
+<span class="ch">         Bm7</span>
+Do they know why they go?
+
+<span class="ch">Bm7</span>
+Look into your book of rules
+        Em              D.
+And tell me what you see
+<span class="ch">        A</span>
+Are you all that different?
+<span class="ch">              Bm7</span>
+Are you just the same as me?
+
+<span class="ch">G          A       Bm7</span>
+Waiting for 1989
+<span class="ch">G             A          Bm7</span>
+We don&#x27;t want no more war
+
+<span class="ch">Bm7</span>
+Love is sleeping away
+    Em            D.
+It slips away so fast
+<span class="ch">        A</span>
+I always thought that it would last
+<span class="ch">        Bm7</span>
+And it would last
+
+<span class="ch">Bm7</span>
+Look into your book of rules
+     Em              D.
+And tell me what you see
+<span class="ch">      A</span>
+Am I all that different?
+<span class="ch">                      Bm7</span>
+Are you just the same as me?
+
+<span class="ch">G       A   Bm7</span>
+Waitin for 1989
+
+<span class="ch">G        A            Bm7</span>
+We don&#x27;t want no more war
+<span class="ch">G        A    Bm7</span>
+Waiting for 1989 ..</pre></div></details>
+<details class="song" id="s-chau" data-players="d s g c"><summary><span class="rt r1">R1</span><span class="st">Chau</span><span class="art">No Te Va a Gustar</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip c tent">Cyn</span></span></summary><div class="sb"><p class="note">Podría cantar Cyn, como en la versión de Julieta Venegas, si Sergio está de acuerdo.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Chau%20No%20Te%20Va%20a%20Gustar" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">Bm                      G</span>
+   Estábamos los dos mirando el mar
+<span class="ch">A                    D</span>
+  Cuando la tarde moría
+<span class="ch">Bm                 G</span>
+   Como moría lo nuestro
+<span class="ch">A                   D  F#</span>
+  Juro que no lo sabia
+
+<span class="ch">Bm               G</span>
+   Mire para mi derecha
+<span class="ch">A                 D   F#</span>
+  Vi que desaparecías
+<span class="ch">Bm                       G</span>
+   Grite con todas mis fuerzas
+<span class="ch">A                   D   F#</span>
+  Y note que no me oías
+
+<span class="ch">Bm          G  D  A                       D   F#</span>
+   Me quede         toda la noche en la arena
+<span class="ch">Bm         G  D  A                      D   F#</span>
+   Intente         que algo valiera la pena
+<span class="ch">Bm</span>
+   No puedo conseguir
+<span class="ch">G</span>
+  Cambiar, ni corregir
+<span class="ch">E                     F#</span>
+  Lo que me corre en las venas
+
+<span class="ch">Bm      G</span>
+   Corazón
+<span class="ch"> A        D        F#</span>
+Hoy no dejes de latir
+<span class="ch">Bm             G</span>
+   Te alejaste un día
+<span class="ch">G#°            F#</span>
+    Ahora decidiste venir
+
+<span class="ch">Bm                     G</span>
+   Ha pasado mas de un año y vos no estas
+<span class="ch">A                      D</span>
+  Por que habría de creerte?
+<span class="ch">Bm                  G</span>
+   Hubiera dado la vida y mucho más
+<span class="ch">A                    D    F#</span>
+  Por solo volver a verte
+
+<span class="ch">Bm                     G</span>
+   No podría darme el lujo
+<span class="ch">A                    D    F#</span>
+  De ceder ante tu llanto
+<span class="ch">Bm                      G</span>
+   No pienso abrir las heridas
+<span class="ch">A                     D    F#</span>
+  De haberte querido tanto
+
+<span class="ch">Bm      G  D</span>
+Escuche
+<span class="ch">A                    D   F#</span>
+  Pero deje que se fuera
+<span class="ch">Bm         G  D</span>
+   Recordé
+<span class="ch">A                   D   F#</span>
+  Todo lo libre que era
+<span class="ch">Bm</span>
+   No puedo conseguir
+<span class="ch">G</span>
+  Cambiar, ni corregir
+<span class="ch">G#°                     F#</span>
+    Lo que me corre en las venas
+
+<span class="ch">Bm      G</span>
+   Corazón
+<span class="ch"> A      D          F#</span>
+Hoy no dejes de latir
+<span class="ch">Bm             G</span>
+   Te alejaste un día….
+<span class="ch">G#°            F#</span></pre></div></details>
+<details class="song" id="s-el-fantasma" data-players="d s g a"><summary><span class="rt r1">R1</span><span class="st">El Fantasma</span><span class="art">Árbol</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip a">Agustín</span></span></summary><div class="sb"><p class="note">Los tres + teclado colchón.</p><a class="ext" href="https://www.google.com/search?q=acordes%20El%20Fantasma%20%C3%81rbol" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">[Intro] G  D/F#  Em  C</span>
+
+<span class="ch">G                    D/F#          Em               C</span>
+Salgo volando por la ventana, y tantos días quedan atrás
+<span class="ch">G                 D/F#                Em</span>
+Ya no me duelen todas las cosas que ayer me podían
+<span class="ch">    C</span>
+molestar
+<span class="ch">G                            D/F#                    Em</span>
+Son cajones que se cierran para que nadie los vea. Son
+palabras que
+<span class="ch">          C</span>
+No pude decir
+<span class="ch">G                         D/F#               Em</span>
+Pero ya no me importa, porque nada me toca, y no hay nada
+vivo
+<span class="ch">           C</span>
+Dentro de mi
+<span class="ch">G                    D/F#               Em</span>
+Floto en el aire desde esta tarde, cuando mi
+<span class="ch">C</span>
+cabeza Explotó
+<span class="ch">G                               D/F#                 Em</span>
+Ahora el piso es de nubes y me asomo cada tanto a espiarte desde
+<span class="ch">        C</span>
+Donde estoy
+
+<span class="ch">G  D/F#   Em  C</span>
+Y veo, y vuelo
+<span class="ch">G  D/F#    Em  C</span>
+Y veo, y vuelo
+<span class="ch">G                      D/F#                     Em</span>
+El barrio se ilumina y la noche se hace día. Brilla como
+un árbol
+<span class="ch">         C</span>
+De navidad
+<span class="ch">G                         D/F#</span>
+Y estoy alto muy alto, y las luces de los autos que se
+<span class="ch">   Em</span>
+frenan cada
+<span class="ch">                     C</span>
+Tanto, y vuelven a arrancar
+<span class="ch">G                     D/F#               Em           C</span>
+Y veo, a la gente corriendo como una coreografía sin fin
+<span class="ch">G                     D/F#                Em</span>
+Y vuelo como en una avioneta, el olor a fugazeta que
+<span class="ch">           C</span>
+cocina mamá
+<span class="ch">G                     D/F#               Em</span>
+Y me acuerdo de aquel día en que decías: &quot;Si pudieras ser
+un
+<span class="ch">           C</span>
+Pájaro ¿Qué harías...?&quot;
+<span class="sec">[Interlude ( G  D/F#  Em  C ) ]</span>
+
+<span class="ch">G                    D/F#                     Em</span>
+Ahora que floto y no siento lo que toco y la gente no me
+<span class="ch">       C</span>
+ ve pasar
+<span class="ch">G                      D/F#                 Em</span>
+Voy a aprovechar para ir a buscarte, y contarte como es
+todo por
+<span class="ch"> C</span>
+Acá
+<span class="ch">G                      D/F#                   Em</span>
+Algunas mañanas pasa la abuela Yolanda y nos vamos juntos
+a
+<span class="ch">   C</span>
+Pasear
+<span class="ch">G                     D/F#                  Em</span>
+Y te manda un saludo el marido de pocha. Que me juega al
+ajedrez y
+<span class="ch">           C</span>
+No le puedo ganar
+<span class="ch">G                       D/F#                         Em</span>
+Y dale para adelante con el pibe de a la vuelta, que a la tarde te
+<span class="ch">        C</span>
+Pasó a visitar
+
+<span class="ch">G                          D/F#                     Em</span>
+Yo te sigo esperando, porque nada me apura y algún día
+todos
+<span class="ch">            C</span>
+Vienen para aca
+<span class="ch">G       D/F#      Em    C</span>
+Y veo (y veo), y vuelo (y vuelo)
+<span class="ch">G       D/F#       Em     C</span>
+Y veo (y veo), y vuelo (y vuelo)
+<span class="ch">G      D/F#       Em      C</span>
+Y veo (y veo), y vuelo (y vuelo)
+<span class="ch">G        D/F#      Em       C</span>
+Y lloro (y lloro) un poco (un poco)
+
+<span class="sec">[Riff 1]</span>
+
+<span class="ch">( G  D/F#  Em  C )</span>
+
+<span class="ch">G      D/F#      Em       C</span>
+Y veo (y veo), y vuelo (y vuelo)
+<span class="ch">G      D/F#      Em      C</span>
+Y veo (y veo), y vuelo (y vuelo)
+<span class="ch">G       D/F#      Em      C</span>
+Y veo (y veo), y vuelo (y vuelo)
+<span class="ch">G       D/F#       Em      C</span>
+Y lloro (y lloro) un poco (un poco)</pre></div></details>
+<details class="song" id="s-desconfio" data-players="d s g a"><summary><span class="rt r1">R1</span><span class="st">Desconfío</span><span class="art">Pappo</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip a">Agustín</span></span></summary><div class="sb"><p class="note">Los tres + teclado tipo piano.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Desconf%C3%ADo%20Pappo" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">[Intro] F#m Bm  E  A  A/G</span>
+<span class="ch">        D/F# F7  E  E7</span>
+
+<span class="ch">           A</span>
+No se porqué
+<span class="ch">    C#7</span>
+Imaginé
+<span class="ch">               D</span>
+Que estábamos unidos
+<span class="ch">              D#dim</span>
+Y me sentí mejor
+
+<span class="ch">             A  F#m</span>
+Pero aquí estoy
+<span class="ch">               Bm  E</span>
+Tan solo en la vida
+<span class="ch">              A  A/G  D/F# F7  E</span>
+Que mejor me voy
+
+<span class="ch">[Solo] A  C#7  D  B7</span>
+<span class="ch">       A  F#m Bm  E</span>
+<span class="ch">       A  A/G  D/F# F7  E</span>
+
+<span class="ch">           A</span>
+Un viejo blues
+<span class="ch">            C#7</span>
+Me hizo recordar
+<span class="ch">                D</span>
+Momentos de mi vida
+<span class="ch">             D#dim</span>
+Y mi primer amor
+
+<span class="ch">             A  F#m</span>
+Pero aquí estoy
+<span class="ch">                Bm  E</span>
+Tan solo en la vida
+<span class="ch">              A  A4  A</span>
+Que mejor me voy</pre></div></details>
+<details class="song" id="s-cabildo" data-players="d s g a"><summary><span class="rt r1">R1</span><span class="st">Cabildo y Juramento</span><span class="art">Conociendo Rusia</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip a">Agustín</span></span></summary><div class="sb"><p class="note">Los tres + teclado colchón.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Cabildo%20y%20Juramento%20Conociendo%20Rusia" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">[Intro] F#m F#m6</span>
+
+<span class="ch">F#m                     Bm7</span>
+Te pido la cuenta por favor
+<span class="ch">E7                       Ab      C#7</span>
+Hay tanto silencio en la calle vacía
+<span class="ch">F#m                      Bm7</span>
+En el cine hay una de terror
+<span class="ch">E7                         Ab         C#7</span>
+Pero a mi me asusta lo que veo en el dia
+
+<span class="ch">Bm7           E7</span>
+Y me gusta pensar
+         A           D7M
+Que nos vamos a encontrar
+<span class="ch">         Bm7        C#7         F#m</span>
+En la esquina de cabildo y juramento
+
+<span class="ch">( F#m F#m6 )</span>
+
+<span class="ch">F#m                       Bm7</span>
+No recuerdo bien lo que pasó
+<span class="ch">E7                        Ab      C#7</span>
+Me despierto con un grito de mi vecina
+<span class="ch">F#m                           Bm7</span>
+Mientras yo me aburro en el avión
+<span class="ch">E7                     Ab     C#7</span>
+Vos subiendo fotos en una limusina
+
+<span class="ch">Bm7           E7</span>
+Y me gusta pensar
+         A           D7M
+Que nos vamos a encontrar
+<span class="ch">         Bm7        C#7         F#m</span>
+En la esquina de cabildo y juramento
+<span class="ch">F#           Bm7         E7</span>
+Ya di vuelta toda la ciudad
+A               D7M
+Regreso al mismo bar
+<span class="ch">Bm7                 C#7          F#m</span>
+Otra vez se hace de dia en un momento
+
+<span class="ch">( Bm7  E7  A  C#7 )</span>
+
+<span class="ch">Bm7           E7</span>
+Y me gusta pensar
+         A           D7M
+Que nos vamos a encontrar
+<span class="ch">         Bm7        C#7         F#m</span>
+En la esquina de cabildo y juramento
+<span class="ch">F#           Bm7         E7</span>
+Ya di vuelta toda la ciudad
+A               D7M
+Regreso al mismo bar
+<span class="ch">Bm7                 C#7</span>
+Otra vez se hace de dia
+
+<span class="ch">[Outro] F#m F#m6</span></pre></div></details>
+<details class="song" id="s-crimenes" data-players="d s g a"><summary><span class="rt r1">R1</span><span class="st">Crímenes Perfectos</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip a">Agustín</span></span></summary><div class="sb"><p class="note">Teclado colchón. Los acordes todavía no están cargados.</p><p class="nochart">Los acordes de este tema todavía no están en el archivo Tocamos Canciones. Mientras tanto: <a href="https://www.google.com/search?q=acordes%20Cr%C3%ADmenes%20Perfectos%20" target="_blank" rel="noopener">buscar los acordes online</a>.</p></div></details>
+<details class="song" id="s-todo-suena" data-players="d s g"><summary><span class="rt r1">R1</span><span class="st">Todo Suena Igual a Vos</span><span class="chips"><span class="chip d tent">Diego</span><span class="chip s tent">Seba</span><span class="chip g tent">Sergio</span></span></summary><div class="sb"><p class="note">Marcado con (?): falta definir. Los acordes todavía no están cargados.</p><p class="nochart">Los acordes de este tema todavía no están en el archivo Tocamos Canciones. Mientras tanto: <a href="https://www.google.com/search?q=acordes%20Todo%20Suena%20Igual%20a%20Vos%20" target="_blank" rel="noopener">buscar los acordes online</a>.</p></div></details>
+<details class="song" id="s-masacre" data-players="d s g"><summary><span class="rt r2">R2</span><span class="st">Masacre en el Puticlub</span><span class="chips"><span class="chip d tent">Diego</span><span class="chip s tent">Seba</span><span class="chip g tent">Sergio</span></span></summary><div class="sb"><p class="note">Marcado con (?): falta definir quiénes tocan.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Masacre%20en%20el%20Puticlub%20" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">Patricio rey y sus redonditos de ricota
+
+Introdución
+<span class="ch">      E       D#       D</span>
+
+<span class="ch">F#7                            F7</span>
+por una pipa del nueve arranco
+<span class="ch">F#7                          F7</span>
+la gran masacre del puticlub
+<span class="ch">F#7                              F7</span>
+con pastillita en tren gladiador
+<span class="ch">F#7</span>
+puso un huevo y la cosa exploto
+
+<span class="ch">E5</span>
+Rock fuerte en el puticlub
+cambio la suerte del puticlub
+
+<span class="ch">E5</span>
+Rock fuerte en el puticlub
+cambio la suerte del puticlub
+
+Repite introducion
+
+<span class="ch">F#7                         F7</span>
+Buena faena de tajo y talon
+<span class="ch">F#7                                F7</span>
+ruedan los dientes del negro canon
+<span class="ch">F#7                            F7</span>
+su mala leche no siente dolor
+<span class="ch">F#7</span>
+y arroja entranas en todo el salon
+
+<span class="ch">E5</span>
+Rock fuerte en el puticlub
+cambio la suerte del puticlub
+
+Riff B/C# x2
+
+<span class="ch">E5</span>
+Rock fuerte en el puticlub
+cambio la suerte del puticlub
+
+Repite intodución
+
+<span class="ch">F#7                          F7</span>
+los impacientes del puticlub
+<span class="ch">F#7                          F7</span>
+perdian el tiempo y la salud
+<span class="ch">F#7                            F7</span>
+el gas coreano depronto arribo
+<span class="ch">F#7</span>
+llego del norte y todo acabo
+
+<span class="ch">E5</span>
+Rock fuerte en el puticlub
+ja-ja que fuerte lo del puticlub
+
+Riff B/C# x2
+
+<span class="ch">E5</span>
+Rock fuerte en el puticlub
+ja-ja que fuerte lo del puticlub</pre></div></details>
+<details class="song" id="s-amanece" data-players="d c"><summary><span class="rt r2">R2</span><span class="st">Amanece en la Ruta</span><span class="chips"><span class="chip d">Diego</span><span class="chip c">Cyn</span></span></summary><div class="sb"><p class="note">Diego solo con la acústica + Cyn.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Amanece%20en%20la%20Ruta%20" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">Intro
+<span class="ch">B             F#/A#          E/G#         F#/A#</span>
+ Amanece en la ruta, no me importa donde estoy
+<span class="ch">B                F#/A#         E/G#       F#/A#</span>
+ me he dormido viajando y he soñado tan intenso
+<span class="ch">Emaj7                    F#         D#m7         G#m</span>
+   y en ese sueño yo me veia en ese auto pero no
+<span class="ch">Emaj7                     F#           D#m7         G#m</span>
+   no era el mismo porque estaba todo roto en su interior
+
+<span class="ch">B             F#/A#           E/G#         F#/A#</span>
+Este paisaje es tan extraño, se parece al de un tren electrico
+<span class="ch">B                F#/A#         E/G#        F#/A#</span>
+esos arboles tienen contornos, darme cuenta es tan hermoso.
+<span class="ch">Emaj7                 F#         D#m7         G#m</span>
+Y en ese sueño yo me veia en ese auto pero no
+<span class="ch">Emaj7                    F#       D#m7         G#m          Emaj7</span>
+no era el mismo porque tenia fuego en su interior, en su interior
+
+<span class="ch">B             F#/A#           E/G#         F#/A#</span>
+A medida que aceleramos mis recuerdos se estremecen
+<span class="ch">B                F#/A#            E/G#        F#/A#</span>
+y en un soplo veo proyectado como un film toda mi vida
+<span class="ch">Emaj7                 F#         D#m7         G#m</span>
+Ya no se si el cielo esta arriba, abajo o dentro de mi
+<span class="ch">Emaj7                    F#       D#m7         G#m</span>
+y aunque el paisaje sea tan extraño creo haber estado aqui.
+<span class="ch">Emaj7                   D#m7           Emaj7         D#m7          Emaj7</span>
+     ¨Donde voy, donde estoy, quien soy yo, que hora es, donde estare?
+<span class="ch">Emaj7                       D#m7</span>
+     Si afuera no es noche, tampoco es de dia
+Emaj7                  D#m7                    A  B Chm B    A
+     no hay tristezas, tan solo alegrias en mi corazon
+<span class="ch">B             F#/A#           E/G#         F#/A#</span>
+Y ahora todo es una luz tan clara que a mi lado ya no hay nada
+<span class="ch">B                F#/A#            E/G#        F#/A#</span>
+solo alegria, paz y armonia y esa luz que es tan tibia
+<span class="ch">Emaj7                 F#         D#m7         G#m</span>
+y bien comprendo eso no era un sueño en ese auto estaba yo
+<span class="ch">Emaj7                    F#       D#m7         G#m</span>
+y ese auto estaba todo roto y con fuego en su interior.
+<span class="ch">Emaj7                   D#m7           Emaj7         D#m7          Emaj7</span>
+     ¨Donde voy, donde estoy, quien soy yo, que hora es, donde estare? X 3
+<span class="ch">Emaj7                   D#m7           Emaj7</span>
+<span class="ch">Emaj7                   D#m7           Emaj7</span></pre></div></details>
+<details class="song" id="s-anda-diciendo" data-players="d s g"><summary><span class="rt r2">R2</span><span class="st">El Anda Diciendo</span><span class="art">Sueter</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span></span></summary><div class="sb"><p class="note">Los tres.</p><a class="ext" href="https://www.google.com/search?q=acordes%20El%20Anda%20Diciendo%20Sueter" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">A</span>
+El anda diciendo
+<span class="ch">F#m                  Bm</span>
+Él anda diciendo que vos
+<span class="ch">E</span>
+Eras su alegría
+
+<span class="ch">A</span>
+El anda sintiendo
+<span class="ch">F#m                  Bm</span>
+Él anda gimiendo su amor
+<span class="ch">E</span>
+A plena luz del día
+
+<span class="ch">Intervalo:   A    C#m7     Bm7    E</span>
+
+<span class="ch">A</span>
+Se gana la vida
+<span class="ch">F#m               Bm</span>
+Y cuenta los días sin fe
+<span class="ch">E</span>
+Siente que está solo
+
+El anda diciendo,
+Él anda diciendo que vos
+Eras sus alegría
+
+<span class="ch">A                    C#m7                               Bm                          E</span>
+Lo más extraño es que él                Ni siquiera te conoció        Y quizás esté a tu lado
+
+Y cuenta los horas
+Y cuanta los días, el cree
+Que sólo él está solo
+
+El anda diciendo
+Él anda diciendo que vos
+Eras su alegría</pre></div></details>
+<details class="song" id="s-juntos" data-players="d s g"><summary><span class="rt r2">R2</span><span class="st">Juntos a la Par</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span></span></summary><div class="sb"><p class="note">Los tres. Los acordes todavía no están cargados.</p><p class="nochart">Los acordes de este tema todavía no están en el archivo Tocamos Canciones. Mientras tanto: <a href="https://www.google.com/search?q=acordes%20Juntos%20a%20la%20Par%20" target="_blank" rel="noopener">buscar los acordes online</a>.</p></div></details>
+<details class="song" id="s-raros" data-players="d s g c"><summary><span class="rt r2">R2</span><span class="st">Raros Peinados Nuevos</span><span class="art">Charly García</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip c">Cyn</span></span></summary><div class="sb"><p class="note">Los tres + Cyn en una parte y en el coro.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Raros%20Peinados%20Nuevos%20Charly%20Garc%C3%ADa" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">Y si vas a la derecha y cambiás hacia la izquierda, adelante
+Es mejor que estarse quieto, es mejor que ser un vigilante
+Si me gustan las canciones de amor
+Y me gustan esos raros peinados nuevos
+Ya no quiero criticar
+Solo quiero ser un enfermero
+Uh-oh-oh, oh-oh
+Y si trabajás al pedo y estás haciendo algo nuevo, adelante
+Y si cantás a la luna y perdés la vida en un instante
+Si luchaste por un mundo mejor
+Y te gustan esos raros peinados nuevos
+No quiero ver al doctor
+Solo quiero ver al enfermero
+Dame un poquito de amor, no quiero un toco
+Quiero algo de razón, no quiero un loco
+Apagá el televisor
+Si lo que te gusta es gritar, desenchufá el cable del parlante
+El silencio tiene acción, el más cuerdo es el más delirante
+Me gustaban las canciones de amor
+Me gustaban esos raros peinados nuevos
+De chiquito fui aviador
+Pero ahora soy un enfermer</pre></div></details>
+<details class="song" id="s-mesa" data-players="d s g a"><summary><span class="rt r2">R2</span><span class="st">Yo No Me Sentaría en Tu Mesa</span><span class="art">Los Fabulosos Cadillacs</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip a">Agustín</span></span></summary><div class="sb"><p class="note">Los tres + teclado.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Yo%20No%20Me%20Sentar%C3%ADa%20en%20Tu%20Mesa%20Los%20Fabulosos%20Cadillacs" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">              C                   Am</span>
+Por mas que quieras sacarnos de nuestro lugar
+<span class="ch">          F                  G</span>
+y piensen que solo somos un puñado de idiotas,
+<span class="ch">           C                    Am</span>
+no, no podras quitarnos lo que hicimos ya,
+<span class="ch">      F                     G</span>
+ahora somos mas hermanos que antes.
+
+Ya no podras mirarnos a los ojos mas,
+nosotros somos amigos vos que solo estas,
+por mas que quieras tapar toda nuestra voz,
+nunca podras callar esta cancion
+
+Intro
+
+Y si despues no crees lo que te estoy diciendo,
+mira mis pies bailando al son de este ritmo,
+voy a vestirme de traje aunque me veas mal,
+voy a saltar toda la noche sin parar de silbar
+
+Esta lloviendo pero yo no me voy mojar,
+mis amigos me cubren cuando voy a llorar,
+por mas que quieras tapar toda nuestra voz,
+nunca podras callar esta cancion</pre></div></details>
+<details class="song" id="s-isabel" data-players="d s g j"><summary><span class="rt r2">R2</span><span class="st">Isabel</span><span class="art">Ratones Paranoicos</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip j">Juan</span></span></summary><div class="sb"><p class="note">Los tres + Juancito.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Isabel%20Ratones%20Paranoicos" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">A                   F #7
+al angel que extermina
+A                  F #7
+el mundo lo ilumina
+A                       F #7
+no deja las guitarras caer
+A           F #7
+el las domina
+
+  Bm7  F *m7    Bm7   F *m7
+isabel,   yo no se
+<span class="ch">    Bm7    G       E   A</span>
+esta vez, quien disparara
+
+la moda nos engaña
+parece congelada
+un siglo con la misma canción
+no dice nada
+
+isabel, yo no se.......
+
+la boca es un infierno,
+el cielo esta turqueza
+millones se desnudan al sol
+todos se mezclan
+
+isabel, yo no se.....
+
+dame las entradas
+hagamos el intento
+es algo que no quiero perder
+E  sentimiento
+
+isabel, yo no se...........
+<span class="ch">           F         E   A</span>
+esta vez, quien te llevara</pre></div></details>
+<details class="song" id="s-wadu" data-players="d s g j"><summary><span class="rt r2">R2</span><span class="st">Wadu Wadu</span><span class="art">Virus</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip j">Juan</span></span></summary><div class="sb"><p class="note">Los tres + Juancito.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Wadu%20Wadu%20Virus" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">Gm   Cm   D#  F     Gm   Cm   D#   F</span>
+Me estás pasando, tu horrible depresión
+<span class="ch">Gm   Cm   D#  F    Gm   Cm   D#  F</span>
+Estás muy tensa.. perdiste la razón
+
+<span class="ch">Gm   Cm   D#  F   Gm   Cm   D#  F</span>
+Los días pasan.. y seguís siempre igual
+<span class="ch">Gm   Cm   D#  F  Gm   Cm   D#  F</span>
+Voy a sacarte.. del nivel en que estás
+
+<span class="ch">   A#       D#       A#       D#      A#</span>
+Este sábado a la noche te paso a buscar
+<span class="ch">     D#            A#       D#        A#</span>
+A bailar el Wadu-Wadu que te va a gustar
+<span class="ch">D#              A#       D#        A#</span>
+Te prometo invitarte muchas veces más
+<span class="ch">   D#                 A#              D#</span>
+Todo el tiempo Wadu-Wadu para re-relajar
+
+Wadu-wadu-wadu-wadu-wadu-wadu-wa
+
+Wadu-wadu-wadu-wadu-wadu-wadu-wa (...)     D#            A#       D#        A#</pre></div></details>
+<details class="song" id="s-cieguitos" data-players="d s g j"><summary><span class="rt r2">R2</span><span class="st">Pensé Que Se Trataba de Cieguitos</span><span class="art">Twist</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip j">Juan</span></span></summary><div class="sb"><p class="note">Los tres + Juancito.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Pens%C3%A9%20Que%20Se%20Trataba%20de%20Cieguitos%20Twist" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">Oficial,llame al movil
+documentos,por favor
+A ver,todos contra la pared
+rapidito,contra la pared
+Fernandez,apurese!!
+
+<span class="ch">A</span>
+Era un sábado a la noche,tenia plata y hacia calor
+<span class="ch">        D</span>
+me dije,viejo,aprovecha sos joven
+<span class="ch">            A</span>
+y me fui al cine a ver una de terror
+<span class="ch">          E             D         A         E</span>
+sali a la calle,pare un taxi,y me fui,por ahi
+
+Baje en Sarmiento y Esmeralda
+compre un paquete de pastillas Renomé
+en eso siento que un señor me llama
+al darme vuelta me di cuenta que eran tres
+muy bien peinados,muy bien vestidos
+y con un Ford verde
+
+Pense que se trataba de cieguitos
+anteojos negros usaban los tres
+al llegar me dijeron,Buenas noches
+donde trabaja?donde vive?usted quien es?
+punto seguido me invitaron a subir al Ford
+
+Llegamos a un edificio
+y comportandose con toda correccion
+me sometieron a un breve interrogatorio
+que duro casi cuatro horas y fraccion
+se hizo muy tarde dijeron,no hay colectivos
+quedese!por favor
+
+A los tres dias de vivir con ellos
+de muy buen modo me dijeron,vayase!
+me devolvieron mis cordones y mi cinto
+los tenian ellos,no les pregunte porque
+cuando salia,me prometieron,lo aseguraron
+lo repìtieron,
+nos volveremos a ver</pre></div></details>
+<details class="song" id="s-rock-del-gato" data-players="d s g j"><summary><span class="rt r3">R3</span><span class="st">El Rock del Gato</span><span class="art">Ratones Paranoicos</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip j">Juan</span></span></summary><div class="sb"><p class="note">Los tres + Juan.</p><a class="ext" href="https://www.google.com/search?q=acordes%20El%20Rock%20del%20Gato%20Ratones%20Paranoicos" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">                      A</span>
+Quiero verla en el show,
+<span class="ch">                       A</span>
+es como un gato siamés.
+<span class="ch">                        D</span>
+Su cola arde en el risco
+<span class="ch">                     A</span>
+espero que alguna vez
+<span class="ch">                     E</span>
+al ver sus ojos me de
+<span class="ch">                     A</span>
+alguna noche de hotel.
+
+<span class="ch">                      A</span>
+En mi boca no hay control
+<span class="ch">                       A</span>
+Me voy cayendo a tus pies
+<span class="ch">                       D</span>
+Las piernas son un abrigo
+<span class="ch">                A</span>
+Al menos no moriré
+<span class="ch">                  E</span>
+Si todo me sale bien
+<span class="ch">                       A</span>
+Lo haré de nuevo otra vez
+
+<span class="ch">                       A</span>
+En mi boca no hay control
+<span class="ch">                      A</span>
+Me voy cayendo a sus pies
+<span class="ch">                       D</span>
+Las piernas son un abrigo
+<span class="ch">                   A</span>
+Espero que alguna vez
+<span class="ch">                    E</span>
+Al ver sus ojos me den
+<span class="ch">                   A</span>
+Alguna noche de hotel
+
+<span class="ch">                     A</span>
+Quiero verla en el show
+<span class="ch">                    A</span>
+Es como un gato siamés
+<span class="ch">                       D</span>
+Su cola arde en el risco
+<span class="ch">                 A</span>
+Al menos no moriré
+<span class="ch">                  E</span>
+Si todo me sale bien
+<span class="ch">                        A</span>
+Lo haré de nuevo otra vez
+
+<span class="ch">                      D</span>
+Su cola arde en el risco
+<span class="ch">                    A</span>
+Espero que alguna vez
+<span class="ch">                     E</span>
+Al ver sus ojos me den
+<span class="ch">                    A</span>
+Alguna noche de hotel
+<span class="ch">                    E</span>
+Al ver sus ojos me den
+<span class="ch">                    A</span>
+Alguna noche de hotel</pre></div></details>
+<details class="song" id="s-ligera" data-players="d s g j"><summary><span class="rt r3">R3</span><span class="st">De Música Ligera</span><span class="art">Soda Stereo</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip j">Juan</span></span></summary><div class="sb"><p class="note">Los tres + Juan.</p><a class="ext" href="https://www.google.com/search?q=acordes%20De%20M%C3%BAsica%20Ligera%20Soda%20Stereo" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">Bm        G  D</span>
+Ella durmio
+<span class="ch">      A           Bm   G  D  A</span>
+Al calor de las  masas
+<span class="ch">   Bm       G  D</span>
+Y yo desperté
+<span class="ch">     A       Bm   G  D  A</span>
+Queriendo soñarla
+<span class="ch">   Bm           G   D  A</span>
+Algún tiempo atras
+<span class="ch">    A          Bm   G  D  A</span>
+Pensé en escribirle
+<span class="ch">   Bm        G  D</span>
+Y nunca sortié
+<span class="ch">      A           Bm  G  D  A</span>
+Las trampas del amor
+
+<span class="sec">[Estribillo]</span>
+
+<span class="ch">   Bm          G  D</span>
+De aquel amor
+<span class="ch">    A        Bm  G  D  A</span>
+De música ligera
+<span class="ch"> Bm           G D A</span>
+Nada nos libra
+<span class="ch"> A         Bm  G  D  A</span>
+Nada más queda
+
+<span class="ch">[Solo] Bm  G  D  A</span>
+<span class="ch">       Bm  G  D  A</span>
+<span class="ch">       Bm  G  D  A</span>
+<span class="ch">       Bm  G  D  A</span>
+
+<span class="ch"> Bm         G  D</span>
+No le enviaré
+<span class="ch">   A        Bm   G  D  A</span>
+Cenizas de rosas
+<span class="ch">     Bm       G  D</span>
+Ni pienso evitar
+<span class="ch">     A        Bm    G  D  A</span>
+Sus roces secretos
+
+<span class="sec">[Estribillo]</span>
+
+<span class="ch">   Bm          G  D</span>
+De aquel amor
+<span class="ch">    A        Bm  G  D  A</span>
+De música ligera
+<span class="ch"> Bm            G  D  A</span>
+Nada nos libra
+<span class="ch"> A         Bm  G  D  A</span>
+Nada más queda
+
+<span class="ch">[Solo] Bm  G  D  A</span>
+Estribillo]
+
+<span class="ch">   Bm          G  D</span>
+De aquel amor
+<span class="ch">    A        Bm  G  D  A</span>
+De música ligera
+<span class="ch"> Bm            G  D</span>
+Nada nos libra
+<span class="ch"> A         Bm  G  D  A</span>
+Nada más queda
+
+Nada más
+
+<span class="ch">( Bm  G  D  A )</span>
+
+<span class="sec">[Estribillo Final]</span>
+
+<span class="ch">           Bm  G  D  A</span>
+Nada más queda
+<span class="ch">           Bm  G  D  A</span>
+Nada más queda
+<span class="ch">           Bm  G  D  A</span>
+Nada más queda
+<span class="ch">           Bm  G  D  A</span>
+Nada más queda
+
+<span class="ch">[Final] G  D</span></pre></div></details>
+<details class="song" id="s-pozo" data-players="d s g a j"><summary><span class="rt r3">R3</span><span class="st">Mi Novia Se Cayó en un Pozo Ciego</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip a">Agustín</span><span class="chip j">Juan</span></span></summary><div class="sb"><p class="note">Los tres + teclados + Juan.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Mi%20Novia%20Se%20Cay%C3%B3%20en%20un%20Pozo%20Ciego%20" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"> los Fabulosos Cadillacs
+
+Intro: [G F G F]
+
+<span class="ch">     G           F             G     F</span>
+Caminando por la calle con mi novia
+<span class="ch">       G           F             G     F</span>
+desde hoy ya no escucho mas sus penas
+<span class="ch">      G         F           G     F</span>
+mirenla, en el pozo se ha caido,
+<span class="ch">           G          F           G     F</span>
+ella no quiere nunca mas estar conmigo
+
+Desde aca ya no puedo ni mirarla
+solo escucho que me grita y no se calla
+le pregunto que pasa por alla abajo
+nada, nada, no veo un carajo
+
+<span class="ch">           C                F</span>
+Hay que sacarla, hay que sacarla,
+           G     [F G F]
+del pozo ciego
+<span class="ch">            C                 F</span>
+Hay que ayudarla, hay que ayudarla
+             G     [F G F]
+porque la quiero
+
+Y aca afuera ya no tengo mas amigos
+con Elenita se fue todo lo mio
+y quien me hara el te por la mañana
+o quien se acuesta conmigo en mi cama</pre></div></details>
+<details class="song" id="s-pedazo" data-players="d s g j"><summary><span class="rt r3">R3</span><span class="st">Rock del Pedazo</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip j">Juan</span></span></summary><div class="sb"><p class="note">Los tres + Juan.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Rock%20del%20Pedazo%20" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">A5</span>
+Ya me estoy agotando
+<span class="ch">    G5      D5</span>
+De tanto caminar
+<span class="ch">  A5                   B5</span>
+Hace dos horas que ando
+<span class="ch">                   E5</span>
+Tras de un poco de grass
+<span class="ch">A5</span>
+Sigo dando vueltas solo
+<span class="ch">      G5          D5</span>
+Y me digo \&quot;otra no hay\&quot;
+<span class="ch">A5                      B5</span>
+Parezco un alienado nena
+<span class="ch">            E5</span>
+Que no sabe donde está
+<span class="ch"> A5</span>
+Yo quiero mi pedazo
+<span class="ch">     G5           D5</span>
+Por qué no me lo dan
+<span class="ch">   G5              B5</span>
+Si yo ya puse plata
+<span class="ch">               E5</span>
+Y el pedazo no está
+<span class="ch"> A5</span>
+Maldigo a tu hermana
+<span class="ch"> G5</span>
+Maldigo esta ciudad
+<span class="ch">  A5               B5</span>
+Yo solo tengo ganas
+<span class="ch">              E5</span>
+De empezar a llorar
+<span class="ch">    A5</span>
+Yo quiero mi pedazo
+<span class="ch">     G5</span>
+Por que&#x27; no me lo dan
+<span class="ch">   A5              B5</span>
+Si yo ya puse plata
+<span class="ch">             E5</span>
+Y el pedazo no esta
+<span class="ch">A5</span>
+Ya me estoy agotando
+<span class="ch">    G5      D5</span>
+De tanto caminar
+<span class="ch">  A5                   B5</span>
+Hace dos horas que ando
+<span class="ch">                   E5</span>
+Tras de un poco de grass
+<span class="ch">A5</span>
+Sigo dando vueltas solo
+<span class="ch">      G5          D5</span>
+Y me digo \&quot;otra no hay\&quot;
+<span class="ch">A5                      B5</span>
+Parezco un alienado nena
+<span class="ch">            E5</span>
+Que no sabe donde está
+
+Yo quiero mi pedazo
+Por qué no me lo dan
+Si yo ya puse plata
+Y el pedazo no está
+
+Maldigo a tu hermana
+Maldigo esta ciudad
+Yo solo tengo ganas
+De empezar a llorar
+
+Yo quiero mi pedazo
+Por que&#x27; no me lo dan
+Si yo ya puse plata
+Y el pedazo, Y EL PEDAZO no esta</pre></div></details>
+<details class="song" id="s-maravillosa" data-players="d s g"><summary><span class="rt r3">R3</span><span class="st">Maravillosa Esta Noche</span><span class="chips"><span class="chip d tent">Diego</span><span class="chip s tent">Seba</span><span class="chip g tent">Sergio</span></span></summary><div class="sb"><p class="note">Marcado con (?): falta definir quiénes tocan.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Maravillosa%20Esta%20Noche%20" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">JAF
+<span class="ch">Tono: A</span>
+
+<span class="ch">Intro: A E D E</span>
+
+<span class="ch">A              E    D           E          A</span>
+Es tarde a la noche, ella busca que vestir
+<span class="ch">              E    D            E         D</span>
+despues se maquilla y peina su largo pelo
+<span class="ch">        E     A          F#m             D         E</span>
+y me pregunta... ¿me veo bien?, le digo sì, estas
+<span class="ch">   A   E  D  E</span>
+maravillosa hoy
+
+<span class="ch">A          E     D              E        A</span>
+Vamos a la fiesta y todos giran para ver
+<span class="ch">               E   D           E          D</span>
+a esta hermosa dama que camina junto a mi
+<span class="ch">        E     A              F#m             D</span>
+y me pregunta... ¿te sientes bien?, le digo sì, estoy
+<span class="ch">     E           A</span>
+maravilloso hoy
+<span class="ch">        D               E        A              F#m</span>
+Me siento muy bien pues veo el amor en sus ojos hoy
+<span class="ch">      D          E            D            E</span>
+y lo grande, lo mejor, es que aun no se da cuenta cuanto la
+<span class="ch">A   E  D  E</span>
+amo
+
+<span class="ch">A            E     D          E            A</span>
+Tiempo del retorno, finjo malestar, le doy
+<span class="ch">               E    D             E          D</span>
+las llaves del auto, me ayuda a ir a la cama,
+<span class="ch">         E    A                  F#m</span>
+entonces digo, mientras apago la luz
+<span class="ch">        D           E           A</span>
+digo querida, estas maravillosa hoy,
+<span class="ch">      D                E           A    E  D</span>
+Oh my darling you were wonderful tonight...
+<span class="ch">E           A</span>
+wonderful tonight...</pre></div></details>
+<details class="song" id="s-loca" data-players="d s g a"><summary><span class="rt r3">R3</span><span class="st">Loco (Tu Forma de Ser)</span><span class="art">Los Auténticos Decadentes</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip a">Agustín</span></span></summary><div class="sb"><p class="note">Los tres + teclados.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Loco%20%28Tu%20Forma%20de%20Ser%29%20Los%20Aut%C3%A9nticos%20Decadentes" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">Intro:
+G Bm Bbm-Am-D
+<span class="ch">   G</span>
+Te vi llegar del brazo de un amigo
+<span class="ch">           Bm</span>
+cuando entraste al bar y te caíste al piso,
+Bbm-Am
+me tiraste el pingüino, me tiraste el sifón,
+<span class="ch">      D</span>
+estallaron los vidrios de mi corazón
+<span class="ch">   G</span>
+te vi bailar, brillando con tu ausencia
+<span class="ch">       Bm</span>
+sin sentir piedad chocando con las mesas
+Bbm-Am
+te burlaste de todos, te reíste de mí
+<span class="ch">      D</span>
+tus amigos escaparon de vos,
+<span class="ch">                  G</span>
+y a mí me volvió loco tu forma de ser,
+<span class="ch">                Bm</span>
+a mí me vuelve loco tu forma de ser
+Bm-Am
+tu egoísmo y tu soledad
+<span class="ch">       D</span>
+son estrellas en la noche de la mediocridad
+<span class="ch">           G</span>
+me vuelve loco tu forma de ser,
+<span class="ch">                Bm</span>
+a mi me volvió loco tu forma de ser
+Bbm-Am
+tu egoísmo y tu soledad
+<span class="ch">     D</span>
+son joyas en el barro de la mediocridad
+
+G Bm Bbm-Am D x3
+
+<span class="ch">    G</span>
+viniste a mí, tomaste de mi copa,
+
+me sonreíste así, nadando en tu demencia
+Bbm-Am
+  no sabía que hacer, te traté de besar,
+<span class="ch">      D</span>
+me pegaste un sopapo y te pusiste a llorar
+<span class="ch">           G</span>
+me volvió loco tu forma de ser,
+<span class="ch">                Bm</span>
+a mí me vuelve loco tu forma de ser
+Bm-Am
+tu egoísmo y tu soledad
+<span class="ch">       D</span>
+son estrellas en la noche de la mediocridad
+<span class="ch">           G</span>
+me vuelve loco tu forma de ser,
+<span class="ch">                Bm</span>
+a mi me volvió loco tu forma de ser
+Bbm-Am
+tu egoísmo y tu soledad
+<span class="ch">     D          Am              Bm   Am G</span>
+son joyas en el barro de la mediocridad</pre></div></details>
+<details class="song" id="s-mi-enfermedad" data-players="d s g c"><summary><span class="rt r3">R3</span><span class="st">Mi Enfermedad</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip c">Cyn</span></span></summary><div class="sb"><p class="note">Canta Cyn.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Mi%20Enfermedad%20" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">                         G              A</span>
+estoy vencido porque el mundo me hizo así
+<span class="ch">             Bm</span>
+no puedo cambiar
+<span class="ch">                      G          A</span>
+soy el remedio sin receta y tu amor
+<span class="ch">       Bm</span>
+mi enfermedad
+<span class="ch">                          G           A</span>
+estoy vencido porque el cuerpo de lo dos
+<span class="ch">         Bm</span>
+es mi debilidad
+<span class="ch">      G        A         D             G</span>
+esta vez el dolor va a terminar.
+
+<span class="ch">                A      D               G</span>
+parece que la fiesta terminó
+<span class="ch">                A        D</span>
+perdimos en el tunel del amor
+<span class="ch">    G        A                   Bm</span>
+y dicen las hojas del libro que más leo yo
+<span class="ch">      G        A            D</span>
+esta vez el esclavo se escapó.
+
+me entrego al vino porque el mundo me hecho asi
+no puedo cambiar
+soy el remedio sin receta y tu amor
+MI enfermedad
+estoy vencido por que el cuerpo de los dos
+es mi debilidad
+esta vez el dolor va a terminar.
+
+<span class="ch">           G          A         D</span>
+en nuestro árbol una hoja se cayó
+<span class="ch">       G         A            D</span>
+en mi boca la manzana se pudrió
+<span class="ch">     G        A            Bm</span>
+tendrias que aprender a pedir perdón
+<span class="ch">      G        A           D</span>
+esta vez la cadena se rompió.</pre></div></details>
+<details class="song" id="s-flaca" data-players="d s g a j"><summary><span class="rt r3">R3</span><span class="st">Flaca</span><span class="art">Andrés Calamaro</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip a">Agustín</span><span class="chip j">Juan</span></span></summary><div class="sb"><p class="note">Los tres + teclados + Juan.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Flaca%20Andr%C3%A9s%20Calamaro" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch"> C            E7</span>
+Flaca, no me claves
+<span class="ch">         Am               F</span>
+Tus puñales, por la espalda
+<span class="ch">           C            G</span>
+Tan profundo, no me duelen
+<span class="ch">             C  G</span>
+No me hacen mal
+
+Lejos, en el centro
+De la Tierra, las raíces
+Del amor, donde estaban
+Quedarán
+
+Entre no me olvides
+Me deje nuestros abriles
+Olvidados, En el fondo del placard
+Del cuarto de invitados
+Eran tiempos dorados
+Un pasado mejor
+
+Aunque casi me equivoco
+Y te digo poco a poco
+No me mientas,
+No me digas la verdad
+No te quedes callada
+No levantes la voz
+Ni me pidas perdón
+
+Aunque casi te confieso
+Que también he sido un perro
+  Compañero, Un perro ideal
+Que aprendió a ladrar
+Y a volver al hogar
+ Para poder comer
+
+<span class="ch">    C            E7</span>
+Flaca, no me claves
+<span class="ch">         Am               F</span>
+Tus puñales, por la espalda
+<span class="ch">           C            G</span>
+Tan profundo, no me duelen
+<span class="ch">             C  G</span>
+No me hacen mal
+
+Lejos, en el centro
+De la tierra, las raíces
+Del amor, donde estaban
+Quedarán
+
+Flaca, no me claves
+Tus puñales, por la espalda
+Tan profundo, no me duelen
+ No me hacen mal
+
+Lejos, en el centro
+De la Tierra, las raíces
+Del amor, donde estaban
+Quedarán</pre></div></details>
+<details class="song" id="s-me-gustas" data-players="d s g a"><summary><span class="rt r3">R3</span><span class="st">Me Gustas Muchísimo</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip a">Agustín</span></span></summary><div class="sb"><p class="note">Los tres + teclados.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Me%20Gustas%20Much%C3%ADsimo%20" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">E5</span>
+Nos conocimos bailando en un bar
+Tus piernas volaban las sabia llevar
+A mi me gustaban como las movias
+Y juntos nos fuimos a pernoctar
+<span class="ch">                  A5</span>
+Es que me gustas mucho
+<span class="ch">             E5</span>
+Me gustas mucho
+<span class="ch">              A5</span>
+Me gustas mucho
+<span class="ch">             E5</span>
+Me gustas mucho
+
+<span class="ch">Inter: E5</span>
+
+<span class="ch">E5</span>
+Me gusta como te vestis y como andas
+Me gusta tu pelo, tu cuerpo
+Me gustaria poderte bañar
+También secarte y volverte a enjuagar
+<span class="ch">                    A5</span>
+Porque me gustas mucho
+<span class="ch">                E5</span>
+Me gustas mucho, nena
+<span class="ch">              A5</span>
+Me gustas mucho
+<span class="ch">                B5</span>
+Será que me gustas tanto debe ser que
+<span class="ch">                  E5</span>
+No puedo disimular
+De veras, eaaa</pre></div></details>
+<details class="song" id="s-todo-sigue-igual" data-players="d s g"><summary><span class="rt r3">R3</span><span class="st">Todo Sigue Igual</span><span class="art">Viejas Locas</span><span class="chips"><span class="chip d tent">Diego</span><span class="chip s tent">Seba</span><span class="chip g tent">Sergio</span></span></summary><div class="sb"><p class="note">Sin detalle de quiénes tocan: completar.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Todo%20Sigue%20Igual%20Viejas%20Locas" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">intro: Asus4 A</span>
+
+<span class="ch">             A</span>
+Todo sigue igual
+todo sigue igual de bien,
+             F#m           E   Dmej4
+siguen los amigos que quiero tener.
+<span class="ch">               A</span>
+No me puedo quejar.
+             F#m           E   Dmej4
+Algunas chicas me van a entender,
+             F#m           E    Dmej4
+en esos momentos que no aguanto más
+<span class="ch">                 F#m E</span>
+me puedo conformar.
+
+Hago lo que quiero
+hacer, y no me sale mal
+algunas cosas me tocó perder,
+y otras pude ganar.
+Tengo la banda que quiero tener,
+y más de una razón para pensar
+que todo sigue igual.
+<span class="ch">E                    A</span>
+Cambiar, no cambió nada
+<span class="ch">E                    A</span>
+llegando hasta donde hoy llegué.
+<span class="ch">E                    A</span>
+Todo está como estaba
+F                  Gmej4  E
+todo está igual de bien.</pre></div></details>
+<details class="song" id="s-paloma" data-players="d s g j"><summary><span class="rt r3">R3</span><span class="st">Paloma</span><span class="chips"><span class="chip d">Diego</span><span class="chip s">Seba</span><span class="chip g">Sergio</span><span class="chip j">Juan</span></span></summary><div class="sb"><p class="note">Juan.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Paloma%20" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch"> C                G</span>
+Mi vida fuímos a volar
+<span class="ch">  Am              Em</span>
+Con un solo paracaídas
+<span class="ch"> F               C</span>
+Uno sólo va aquedar
+<span class="ch">  F             G</span>
+Volando a la deriva
+
+ Vivir así no es vivír
+  Esperando y esperando
+ Porque vivir es jugar
+y yo quiero seguir jugando
+
+Le dije a mi corazón
+sin gloria pero sin pena
+no cometas el crimen, varón
+Si no vas a cumplir la condena
+
+Quiero vivir dos veces
+Para poder olvidarte
+Quiero llevarte conmigo
+Y no voy a ninguna parte
+
+No te preocupes, Palom
+Hoy no estoy adentro mío
+Tu amor es mi enfermedad
+Soy un envase vacío
+
+No te preocupes Paloma
+No hay pájaros en el nido
+Dos ilusiones se irán a volar
+Pero otras dos han venido
+
+Si me olvido de vivir
+Colgado de sentimientos
+Voy a vivir para repetir
+Otra vez este momento
+
+Te bajaría del cielo, mujer
+La luna hasta tu cama
+Porque es muy poco de amor
+Sólo una vez por semana
+
+Puse precio a mi libertad
+Y nadie quiso pagarlo
+Te cambio tu corazón por el mío
+Para mirarla y mirarla
+
+Ampas de gloria, mujer
+Quiero un pedazo de cielo
+Para invitarte a dormir
+En la cama o en el suelo
+
+Un sacrificio ritual bien o mal
+Yo quiero hacerle a mi estrella
+Sin principio ni final
+No puedo vivir sin ella
+
+Quiero vivir dos veces
+Para poder olvidarte
+Quiero llevarte conmigo
+Y no voy a ninguna parte
+
+No te preocupes, Paloma
+Hoy no estoy adentro mío
+Tu amor es mi enfermedad
+Soy un envase vacío
+
+no te preocupes Paloma
+No hay pájaros en el nido
+Dos ilusiones se irán a volar
+Pero otras dos han venido</pre></div></details>
+<details class="song" id="s-hacelo" data-players="d s g"><summary><span class="rt r3">R3</span><span class="st">Hacelo Por Mí</span><span class="chips"><span class="chip d tent">Diego</span><span class="chip s tent">Seba</span><span class="chip g tent">Sergio</span></span></summary><div class="sb"><p class="note">Sin detalle de quiénes tocan: completar.</p><a class="ext" href="https://www.google.com/search?q=acordes%20Hacelo%20Por%20M%C3%AD%20" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">E</span>
+Yo no sé lo que sentí
+<span class="ch">      C#m</span>
+esa tarde que te vi
+<span class="ch">     A</span>
+yo pensaba en otras cosas,
+<span class="ch">        B</span>
+fuiste mucho para mí.
+<span class="ch">E</span>
+Yo creía en tus palabras,
+<span class="ch">      C#m</span>
+tu mirada me engañó
+<span class="ch">     A</span>
+Ahora sé que no sos mía,
+<span class="ch">        B</span>
+la culpa la tuve yo.
+<span class="ch">     A</span>
+Yo no quise lastimarte,
+<span class="ch">      C#m</span>
+jamás tuve esa intención
+<span class="ch">     A</span>
+Fuimos presos de un impulso,
+<span class="ch">      F#m          B</span>
+yo solo buscaba amor.
+
+<span class="ch">Intro: E  C#m  E  C#m  A  F#m  D  B</span>
+<span class="ch">E</span>
+Cuando te veía en la calle,
+<span class="ch">      C#m</span>
+no podía evitar
+<span class="ch">     A</span>
+que el silencio se adueñara,
+<span class="ch">        B</span>
+me quedaba sin hablar.
+<span class="ch">E</span>
+Ahora sé que no sos mía,
+<span class="ch">      C#m</span>
+la culpa la tuve yo.
+<span class="ch">     A</span>
+Si querés podes marcharte,
+<span class="ch">        B</span>
+solo te pido un favor.
+<span class="ch">     A</span>
+Si aun te queda algo de amor
+<span class="ch">      C#m</span>
+dentro de tu corazón
+<span class="ch">     A</span>
+no me mires a los ojos
+<span class="ch">        F#m           D          B</span>
+que me muero, yo me muero de dolor
+<span class="ch">            E</span>
+Hacelo por mi.
+<span class="ch">Intro: E  C#m  E  C#m  A  F#m  D  B</span>
+<span class="ch">E</span>
+Todo eso que sentía
+<span class="ch">      C#m</span>
+esa tarde que te vi
+<span class="ch">     A</span>
+ahora no tiene sentido,
+<span class="ch">        B</span>
+fue un mal sueño para mí.
+<span class="ch">E</span>
+Y al pensar en tu mirada,
+<span class="ch">      C#m</span>
+ya no puedo sonreír
+<span class="ch">     A</span>
+si querés podes marcharte,
+<span class="ch">        B</span>
+solo te quiero decir.
+<span class="ch">     A</span>
+Si aun te queda algo de amor
+<span class="ch">      C#m</span>
+dentro de tu corazón
+<span class="ch">     A</span>
+no me mires a los ojos
+<span class="ch">        F#m           D          B</span>
+que me muero, yo me muero de dolor
+<span class="ch">            E</span>
+Hacelo por mi….Hacelo x  mi</pre></div></details>
+<details class="song" id="s-cantaloupe" data-players=""><summary><span class="rt r0">Extra</span><span class="st">Cantaloupe Island</span><span class="art">Herbie Hancock</span><span class="chips"></span></summary><div class="sb"><p class="note">Instrumental. Voz, guitarra 1 (base de acordes), guitarra 2 (base arreglo), piano, bajo, batería y saxo (melodía).</p><a class="ext" href="https://www.google.com/search?q=acordes%20Cantaloupe%20Island%20Herbie%20Hancock" target="_blank" rel="noopener">Ver versión online</a><pre class="chart">Instrumentos:
+Voz
+Guitarra 1 - Base Acordes
+Guitarra 2 -  Base arreglo
+Piano -
+Bajo
+Bateria
+Saxofon - Melodia</pre></div></details>
+<details class="song" id="s-vasos" data-players=""><summary><span class="rt r0">Extra</span><span class="st">Vasos Vacíos</span><span class="art">Los Fabulosos Cadillacs</span><span class="chips"></span></summary><div class="sb"><a class="ext" href="https://www.google.com/search?q=acordes%20Vasos%20Vac%C3%ADos%20Los%20Fabulosos%20Cadillacs" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">G</span>
+No se bien que dia es hoy
+<span class="ch">Em</span>
+solo se que te vi salir
+<span class="ch">     C</span>
+y en cinco minutos perdi,
+<span class="ch">      D</span>
+las letras para hablarte a vos.
+
+<span class="ch">G</span>
+Yo se que no tengo palabras,
+<span class="ch">Em</span>
+y nunca las voy a tener,
+<span class="ch">    C</span>
+por eso aprovecho esta noche,
+<span class="ch">    D</span>
+tal vez lo puedas entender.
+
+<span class="ch">G</span>
+Por eso aprovecho esta noche,
+<span class="ch">Em</span>
+tal vez lo puedas entender
+<span class="ch">    C</span>
+no me importa poner las letras
+<span class="ch">    D</span>
+solo me importa mi mujer.
+
+<span class="ch">G</span>
+mañana cuando te levantes,
+<span class="ch">Em</span>
+y pienses lo que dije ayer
+<span class="ch">    C</span>
+ay nena porque en este juego
+<span class="ch">    D</span>
+a mi siempre me toca perder.
+
+Estribillo:
+
+<span class="ch">C</span>
+Siempre habra vasos vacios
+<span class="ch">G         D       Em</span>
+con agua de la ciudad
+<span class="ch">      C                D</span>
+la nuestra es agua de rio
+<span class="ch">               G      D</span>
+mezclada con mar.
+
+<span class="ch">C</span>
+Levanta los brazos mujer
+<span class="ch">G         D           Em</span>
+y ponte esta noche a bailar
+<span class="ch">        C                  D</span>
+que la nuestra es agua de rio
+<span class="ch">              G</span>
+mezclada con mar.
+<span class="ch">  G</span>
+no se bien que dia es hoy......(REPITES TODA)
+<span class="ch">  G</span>
+a ti te quiero decir n
+<span class="ch">Em</span>
+no te preocupes mi amor
+<span class="ch">C</span>
+que yo te voy a entender
+<span class="ch">D</span>
+que yo te voy a entender
+<span class="ch">C</span>
+siempre habra vasos vacios.....ETC
+
+Stand By Me
+
+<span class="ch">   G</span>
+When the night has come
+<span class="ch">Em7</span>
+     And the land is dark
+<span class="ch">         C          D</span>
+And the moon is the only
+<span class="ch">          G</span>
+Light we see
+
+No I won&#x27;t be afraid
+<span class="ch">      Em7</span>
+Oh I won&#x27;t be afraid
+<span class="ch">         C            D</span>
+Just as long as you stand
+<span class="ch">          G</span>
+Stand by me
+
+So darling, darling
+
+Stand by me
+<span class="ch">      Em7</span>
+Oh! Stand by me
+<span class="ch">      C   D           G</span>
+Oh, stand,  stand by me
+
+<span class="sec">[Segunda Parte]</span>
+
+If the sky that we look upon
+<span class="ch">Em7</span>
+     Should tumble and fall
+<span class="ch">         C</span>
+And the mountain should
+<span class="ch">  D             G</span>
+Crumble to the sea
+
+I won&#x27;t cry, I won&#x27;t cry
+<span class="ch">      Em7</span>
+No I won&#x27;t shed a tear
+<span class="ch">         C            D</span>
+Just as long as you stand
+<span class="ch">       G</span>
+Stand by me
+
+<span class="sec">[Refrão]</span>
+
+And darling, darling
+<span class="ch">  G</span>
+Stand by me
+<span class="ch">      Em7</span>
+Oh! Stand by me
+<span class="ch">      C</span>
+Wow stand now
+<span class="ch">D              G</span>
+  Stand by me,   stand by me
+
+<span class="ch">( G  Em7  C  D  G )</span>
+<span class="ch">( G  Em7  C  D  G )</span>
+
+And darling, darling
+<span class="ch">  G</span>
+Stand by me
+<span class="ch">      Em7</span>
+Oh! Stand by me
+<span class="ch">      C</span>
+Wow stand now
+<span class="ch">D              G</span>
+  Stand by me,   stand by me
+
+Whenever you&#x27;re in trouble
+<span class="ch">            G</span>
+Won&#x27;t you stand by me
+<span class="ch">      Em7</span>
+Oh! Stand by me
+<span class="ch">       C</span>
+Wow, stand now
+<span class="ch">D              C             G</span>
+  Stand by me,   stand by me</pre></div></details>
+<details class="song" id="s-friday" data-players=""><summary><span class="rt r0">Extra</span><span class="st">Friday I&#x27;m in Love</span><span class="art">The Cure</span><span class="chips"></span></summary><div class="sb"><a class="ext" href="https://www.google.com/search?q=acordes%20Friday%20I%27m%20in%20Love%20The%20Cure" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">D                G</span>
+I don&#x27;t care if Monday&#x27;s blue
+<span class="ch">  D                 A</span>
+Tuesday&#x27;s grey and Wednesday too
+<span class="ch">  Bm              G</span>
+Thursday I don&#x27;t care about you
+<span class="ch">       D            A</span>
+It&#x27;s Friday I&#x27;m in love
+<span class="ch"> D              G</span>
+Monday you can fall apart
+<span class="ch"> D                  A</span>
+Tuesday Wednesday break my heart
+<span class="ch">  Bm             G</span>
+Thursday doesn&#x27;t even start
+<span class="ch">       D            A</span>
+It&#x27;s Friday I&#x27;m in lov
+
+<span class="ch"> G        A</span>
+Saturday wait
+<span class="ch">     Bm            G</span>
+And Sunday always comes too late
+<span class="ch">      D           A</span>
+But Friday never hesitate
+
+<span class="ch">D                G</span>
+I don&#x27;t care if Mondays black
+<span class="ch">  D                A</span>
+Tuesday Wednesday heart attack
+<span class="ch">  Bm             G</span>
+Thursday never looking back
+<span class="ch">       D            A</span>
+It&#x27;s Friday I&#x27;m in love
+
+<span class="ch"> D              G</span>
+Monday you can hold your head
+<span class="ch">  D                 A</span>
+Tuesday Wednesday stay in bed
+<span class="ch">     Bm                G</span>
+Or Thursday watch the walls instead
+<span class="ch">      D             A</span>
+It&#x27;s Friday I&#x27;m in love
+
+<span class="ch"> G        A</span>
+Saturday wait
+<span class="ch">     Bm            G</span>
+And Sunday always comes too late
+<span class="ch">      D           A</span>
+But Friday never hesitate
+
+<span class="ch">Bm                   C</span>
+   Dressed up to the eyes
+<span class="ch">                      D</span>
+It&#x27;s a wonderful surprise
+<span class="ch">              A                     Bm</span>
+To see your shoes and your spirits rise
+<span class="ch">                    C                             D</span>
+Throwing out your frown and just smiling at the sound
+<span class="ch">                     A                       Bm</span>
+And as sleek as a shriek spinning round and round
+<span class="ch">                   C                          D</span>
+Always take a big bite, it&#x27;s such a gorgeous sight
+<span class="ch">           A                         Bm</span>
+To see you eat in the middle of the night
+<span class="ch">                    C                      D</span>
+You can never get enough, enough of this stuff
+<span class="ch">            A</span>
+It&#x27;s Friday I&#x27;m in love
+
+<span class="ch">D                G</span>
+I don&#x27;t care if Monday&#x27;s blue
+<span class="ch">  D                 A</span>
+Tuesday&#x27;s grey and Wednesday too
+<span class="ch">  Bm              G</span>
+Thursday I don&#x27;t care about you
+<span class="ch">       D            A</span>
+It&#x27;s Friday I&#x27;m in love
+
+<span class="ch"> D              G</span>
+Monday you can fall apart
+<span class="ch">  D                 A</span>
+Tuesday Wednesday break my heart
+<span class="ch">  Bm             G</span>
+Thursday doesn&#x27;t even start
+<span class="ch">       D            A</span>
+It&#x27;s Friday I&#x27;m in love</pre></div></details>
+<details class="song" id="s-furia" data-players=""><summary><span class="rt r0">Extra</span><span class="st">En la Ciudad de la Furia</span><span class="art">Soda Stereo</span><span class="chips"></span></summary><div class="sb"><a class="ext" href="https://www.google.com/search?q=acordes%20En%20la%20Ciudad%20de%20la%20Furia%20Soda%20Stereo" target="_blank" rel="noopener">Ver versión online</a><pre class="chart"><span class="ch">          Em7</span>
+Me verás volar
+<span class="ch"> G         A         Em7 ( G  A )</span>
+Por la ciudad de la furia
+<span class="ch">G                      A</span>
+  Donde nadie sabe de mi
+<span class="ch">G                    A</span>
+  Y yo soy parte de todos
+
+<span class="ch">      Em7     G</span>
+Nada cambiará
+<span class="ch">         A          Em7 ( G  A )</span>
+Con un aviso de curvas
+<span class="ch">G                        A</span>
+  En sus caras veo el temor
+<span class="ch">G</span>
+  Ya no hay fábulas
+<span class="ch">          A            Em7</span>
+En la ciudad de la furia
+
+<span class="ch">           Em7  G</span>
+Me verás caer
+<span class="ch">        A       Em7 ( G  A )</span>
+Como un ave de presa
+<span class="ch">      G</span>
+Me verás caer
+<span class="ch">          A        G     A</span>
+Sobre terrazas desiertas
+<span class="ch">       Em7   G</span>
+Te desnudaré
+<span class="ch">         A       Em7 ( G  A )</span>
+Por las calles azules
+<span class="ch">      G</span>
+Me refugiaré
+<span class="ch">           A         G     A</span>
+Antes que todos despierten
+
+<span class="ch"> Bm     D      G       Bm    ( D  G )</span>
+Me dejarás dormir al amanecer
+<span class="ch">            A     G</span>
+Entre tus piernas
+<span class="ch">            A    ( F#m  Bm7 )</span>
+Entre tus piernas
+
+<span class="ch">            D      G</span>
+Sabrás ocultarte bien
+<span class="ch">       Bm    ( D  G )</span>
+Y desaparecer
+<span class="ch">          A    ( G  D )</span>
+Entre la niebla
+<span class="ch">           A</span>
+Entre la niebla
+
+<span class="ch">C             G/B</span>
+  Un hombre alado
+<span class="ch">             A</span>
+Extraña la tierra
+
+<span class="ch">          Em7</span>
+Me verás volar
+<span class="ch"> G         A         Em7 ( G  A )</span>
+Por la ciudad de la furia
+<span class="ch">G                      A</span>
+  Donde nadie sabe de mi
+<span class="ch">G                    A</span>
+  Y yo soy parte de todos
+
+<span class="ch">        Em7        G</span>
+Con la luz del sol
+<span class="ch">         A      Em7 ( G  A )</span>
+Se derriten mis alas
+<span class="ch">G                    A</span>
+  Solo encuentro en la oscuridad
+<span class="ch">G</span>
+  Lo que me une
+<span class="ch">           A            Em7</span>
+Con la ciudad de la furia
+
+<span class="ch">( G  A  Em  G  A  G  A  G  A )</span>
+
+<span class="sec">[Chorus]</span>
+
+<span class="ch">           Em7  G</span>
+Me verás caer
+<span class="ch">          A       Em7 ( G  A )</span>
+Como un flecha salvaje
+<span class="ch">      G</span>
+Me verás caer
+<span class="ch">        A       G        A</span>
+entre vuelos fugaces, oh
+<span class="ch">       Em7         G</span>
+Buenos Aires se ve
+<span class="ch"> A         Em7  ( G  A )</span>
+tan susceptible
+<span class="ch">G                         A</span>
+  Ese destino de furia es
+<span class="ch">G                                A</span>
+  Lo que, en sus caras, persiste
+
+<span class="sec">[Bridge]</span>
+
+<span class="ch">Bm         D      G       Bm    ( D  G )</span>
+   Me dejarás dormir al amanecer
+<span class="ch">            A     G</span>
+Entre tus piernas
+<span class="ch">            A    ( F#m  Bm7 )</span>
+Entre tus piernas
+
+<span class="ch">            D      G</span>
+Sabrás ocultarte bien
+<span class="ch">       Bm    ( D  G )</span>
+Y desaparecer
+<span class="ch">          A    ( G  D )</span>
+Entre la niebla
+<span class="ch">           A</span>
+Entre la niebla
+
+<span class="ch">C             G/B</span>
+  Un hombre alado
+<span class="ch">               A</span>
+Prefiere esta noche
+
+<span class="ch">[Outro] Em ( G  A )</span>
+<span class="ch">        Em ( G  A ) G  A  G  A</span>
+<span class="ch">        Em ( G  A )</span>
+<span class="ch">        Em ( G  A ) G  A  G  A</span>
+<span class="ch">        Em ( G  A )</span>
+<span class="ch">        Em ( G  A ) Bm  A/C#  Bm  A</span>
+<span class="ch">        G  A  G  A</span></pre></div></details></div>
+</section>
+</div>
+<script>
+(function(){
+  var cur='all';
+  function apply(){
+    document.querySelectorAll('[data-players]').forEach(function(el){
+      var p=(el.getAttribute('data-players')||'').split(' ');
+      el.hidden = cur!=='all' && p.indexOf(cur)<0;
+    });
+    document.querySelectorAll('tbody').forEach(function(tb){
+      var any=false;tb.querySelectorAll('tr.sr').forEach(function(r){if(!r.hidden)any=true});
+      tb.hidden=!any;
+    });
+    document.querySelectorAll('button.f').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-f')===cur)});
+    try{localStorage.setItem('tm-filter',cur)}catch(e){}
+  }
+  document.querySelectorAll('button.f').forEach(function(b){b.addEventListener('click',function(){cur=b.getAttribute('data-f');apply()})});
+  try{var s=localStorage.getItem('tm-filter');if(s&&document.querySelector('button.f[data-f="'+s+'"]'))cur=s}catch(e){}
+  apply();
+  var size=14;try{size=parseInt(localStorage.getItem('tm-size'))||14}catch(e){}
+  function setSize(n){size=Math.max(11,Math.min(26,n));document.documentElement.style.setProperty('--cs',size+'px');try{localStorage.setItem('tm-size',size)}catch(e){}}
+  setSize(size);
+  document.getElementById('sm').onclick=function(){setSize(size-2)};
+  document.getElementById('lg').onclick=function(){setSize(size+2)};
+  var op=document.getElementById('op');
+  op.onclick=function(){var all=op.getAttribute('data-o')!=='1';document.querySelectorAll('details.song').forEach(function(d){d.open=all});op.setAttribute('data-o',all?'1':'0');op.textContent=all?'Cerrar todos':'Abrir todos'};
+  function go(){var h=location.hash.slice(1);if(!h)return;var el=document.getElementById(h);if(el&&el.tagName==='DETAILS'){el.hidden=false;el.open=true;el.scrollIntoView({block:'start'})}}
+  window.addEventListener('hashchange',go);go();
+})();
+</script>
