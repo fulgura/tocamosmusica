@@ -279,7 +279,7 @@ def contar_lineas_acordes(cifra):
     import chords as CD
     n = 0
     for l in cifra.split('\n'):
-        toks = [t for t in re.split(r'[\s\[\]\(\)\|\-]+', l) if t]
+        toks = CD.TOKRE.findall(l)
         if toks and sum(1 for t in toks if CD.canon(t)) >= max(1, len(toks) // 2):
             n += 1
     return n
