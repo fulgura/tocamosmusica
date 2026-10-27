@@ -1,0 +1,10 @@
+{
+  "_ayuda": "Posiciones propias de la banda. Van primero en el diccionario. 'trastes' de la 6ª cuerda (Mi grave) a la 1ª, X = no se toca, igual que en Cifra Club. 'dedos' es opcional (- = sin dedo).",
+  "G#°": {
+    "posiciones": [
+      {"trastes": "4 X 3 4 3 X", "dedos": "3 - 1 4 2 -"}
+    ],
+    "fuente": "https://www.cifraclub.com/no-te-va-gustar/chau/",
+    "nota": "Chau (No Te Va Gustar)"
+  }
+}

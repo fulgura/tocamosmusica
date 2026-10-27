@@ -3,15 +3,15 @@ import os,sys
 B=os.path.dirname(os.path.abspath(__file__))+'/'
 ROOT=os.path.dirname(B.rstrip('/'))+'/'
 sys.path.insert(0,B)
+import chords as CD
 M=[('d','Diego Correa','Guitarra · Voz','Diego'),('s','Sebastian Vazquez Montoto','Batería','Seba'),('g','Sergio Alvarez','Bajo · Voz','Sergio'),('a','Agustín Alvarez','Teclado','Agustín'),('j','Juan Alvarez','Guitarra · Voz','Juan'),('c','Cyntia','Voz','Cyn')]
 LAB={'d':'Guitarra','s':'Batería','g':'Bajo','a':'Teclado','j':'Guitarra','c':'Voz'}
 DATA=json.load(open(ROOT+'datos/canciones.json',encoding='utf-8'))
 C={s['id']:{'text':s['chart']} for s in DATA if s.get('chart')}
 songs=[dict(id=s['id'],title=s['title'],artist=s.get('artist') or '',r=s.get('ronda',0),chart=(s['id'] if s.get('chart') else None),pl=s.get('players',{}),note=s.get('nota') or '',tent=set(s.get('tentativos',[])),fuente=s.get('fuente')) for s in DATA]
 # tentative from '?' marks: P(tent=True) gave plain dict; mark via tent set
-import chords as CD
 LABELS={'intro','interlude','solo','outro','intervalo','puente','estribillo','final','coro','verso'}
-TOKRE=re.compile(r'[^\s\[\]\(\)\|\-]+')
+TOKRE=CD.TOKRE
 def classify(l):
     toks=TOKRE.findall(l)
     if not toks: return None
@@ -24,7 +24,7 @@ def classify(l):
         return None
     if not ch or bad>1: return None
     return True
-USED=[]; 
+USED=[]; FIRST={}
 def render_chart(txt,seen=None):
     out=[]
     for l in txt.split('\n'):
@@ -38,13 +38,11 @@ def render_chart(txt,seen=None):
                 t=m.group(0); c=CD.canon(t)
                 addt(l[pos:m.start()])
                 if c:
-                    core=t.rstrip('.'); core_p=core.strip('()')
-                    lead=core[:len(core)-len(core.lstrip('('))]; 
-                    addt(lead)
-                    parts.append(('c',c[0],core_p))
-                    addt(t[len(core.rstrip(')')):] if False else core[len(lead)+len(core_p):]+t[len(core):])
-                    if c[0] not in USED: USED.append(c[0])
-                    if seen is not None and c[0] not in [x[0] for x in seen]: seen.append((c[0],core_p))
+                    core=t.rstrip('.')
+                    parts.append(('c',c[0],core))
+                    addt(t[len(core):])
+                    if c[0] not in USED: USED.append(c[0]); FIRST[c[0]]=re.sub(r'/([a-g])',lambda m:'/'+m.group(1).upper(),core)
+                    if seen is not None and c[0] not in [x[0] for x in seen]: seen.append((c[0],core))
                 else: addt(t)
                 pos=m.end()
             addt(l[pos:])
@@ -106,6 +104,6 @@ members=''.join('<li class="mem %s"><b>%s</b><span>%s</span><em>%d temas</em></l
 filt='<button class="f on" data-f="all" type="button">Todos</button>'+''.join('<button class="f" data-f="%s" type="button">%s</button>'%(k,short) for k,_,_,short in M)
 T=open(B+'plantilla.html',encoding='utf-8').read()
 DICT=json.dumps(CD.build_dict(USED),separators=(',',':'),ensure_ascii=False)
-T=T.replace('__DICT__',DICT).replace('__USED__',json.dumps(sorted(USED,key=lambda k:(CD.canon(k)[1],CD.canon(k)[2],k)))).replace('__MEMBERS__',members).replace('__FILTER__',filt).replace('__MATRIX__',tbl).replace('__SONGS__','\n'.join(cards)).replace('__N__',str(len([s for s in songs if s['r']])))
+T=T.replace('__DICT__',DICT).replace('__USED__',json.dumps([[k,FIRST[k]] for k in sorted(USED,key=lambda k:(CD.canon(k)[1],list(CD.QUAL).index(CD.canon(k)[2]),k))],ensure_ascii=False)).replace('__META__',json.dumps(CD.para_pagina(),ensure_ascii=False,separators=(',',':'))).replace('__MEMBERS__',members).replace('__FILTER__',filt).replace('__MATRIX__',tbl).replace('__SONGS__','\n'.join(cards)).replace('__N__',str(len([s for s in songs if s['r']])))
 open(ROOT+'index.html','w',encoding='utf-8').write(T)
 print(len(T))
