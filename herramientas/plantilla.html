@@ -208,16 +208,16 @@ button.sz{min-height:40px;min-width:44px}
 
   var NS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],NF=['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'],NX=['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
   var LP={C:0,D:2,E:4,F:5,G:7,A:9,B:11},LET='CDEFGAB',NAT=[0,2,4,5,7,9,11],OPEN=[4,9,2,7,11,4];
-  var SUF={'dim':'°','dim7':'°7','m7b5':'m7(b5)','aug':'+','madd9':'m(add9)'};
+  var SUF=META.S;
   function lpc(n){var v=LP[n[0].toUpperCase()];for(var i=1;i<n.length;i++)v+=n[i]==='#'?1:-1;return(v%12+12)%12}
-  function parse(name){var m=String(name).match(/^\(?([A-G][#b]?)(.*?)(?:\/([A-Ga-g][#b]?))?\)?$/);if(!m)return null;var q=META.A[m[2].replace(/[()]/g,'')];if(q===undefined)return null;return{r:m[1],qs:m[2],q:q,b:m[3]||null}}
+  function parse(name){var m=String(name).match(/^\(?([A-G][#b]?)(.*?)(?:\/([A-Ga-g][#b]?))?\)?$/);if(!m)return null;var q=META.A[m[2]];if(q===undefined)q=META.A[m[2].replace(/[()]/g,'')];if(q===undefined)return null;return{r:m[1],qs:m[2],q:q,b:m[3]||null}}
   function sp(root,s,g){var li=LET.indexOf(root[0]),L=(li+g-1)%7,a=(((lpc(root)+s)-NAT[L])%12+12)%12;if(a>6)a-=12;var n=LET[L]+(a>0?new Array(a+1).join('#'):new Array(-a+1).join('b'));
     if(Math.abs(a)>1||/^(Fb|Cb|E#|B#)$/.test(n)){var t=(lpc(root)+s)%12;n=(root.indexOf('b')>0?NF:NS)[t]}return n}
   function sounds(v,p){return v.f.some(function(f,i){return f>=0&&(OPEN[i]+f)%12===p})}
   function notesOf(name,v){var p=parse(name);if(!p)return '';var r=lpc(p.r);
     var s=META.Q[p.q].map(function(x){return sp(p.r,x[0],x[1])}).join(' · ');
     var ex=(META.X[p.q]||[]).filter(function(x){return v&&sounds(v,(r+x[0])%12)}).map(function(x){return sp(p.r,x[0],x[1])});
-    if(ex.length)s+=' · '+ex.join(' · ')+' (séptima)';
+    if(ex.length)s+=' · '+ex.join(' · ')+(p.q==='dim'?' (séptima)':'');
     if(p.b)s+=' · bajo '+p.b;return s}
   function svg(v){
     var f=v.f,base=v.base,X=function(i){return 18+i*13},Y0=28,FH=17,s='<svg viewBox="0 0 100 132" role="img" aria-label="Diagrama de guitarra">';

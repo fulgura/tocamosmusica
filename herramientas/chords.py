@@ -55,7 +55,24 @@ QUAL = {
     'dim7':  _q([(0, 1), (3, 3), (6, 5), (9, 7)], label='°7'),
     'm7b5':  _q([(0, 1), (3, 3), (6, 5), (10, 7)], label='m7(b5)'),
     'aug':   _q([(0, 1), (4, 3), (8, 5)], label='aum (+)'),
+    '7b5':   _q([(0, 1), (4, 3), (6, 5), (10, 7)], label='7(b5)'),
+    '7#5':   _q([(0, 1), (4, 3), (8, 5), (10, 7)], label='7(#5)'),
+    '7b9':   _q([(0, 1), (4, 3), (7, 5), (10, 7), (1, 9)], [7], label='7(b9)'),
+    '7#9':   _q([(0, 1), (4, 3), (7, 5), (10, 7), (3, 9)], [7], label='7(#9)'),
+    'mmaj7': _q([(0, 1), (3, 3), (7, 5), (11, 7)], [7], label='m(maj7)'),
+    '69':    _q([(0, 1), (4, 3), (7, 5), (9, 6), (2, 9)], [7], label='6/9'),
+    'm69':   _q([(0, 1), (3, 3), (7, 5), (9, 6), (2, 9)], [7], label='m6/9'),
+    '9sus4': _q([(0, 1), (5, 4), (7, 5), (10, 7), (2, 9)], [7], label='9sus4'),
+    'add11': _q([(0, 1), (4, 3), (7, 5), (5, 11)], [7], label='add11'),
+    # 11 sin tercera (choca con la 11ª), como se toca en la práctica; la 9ª y la 5ª son opcionales.
+    '11':    _q([(0, 1), (7, 5), (10, 7), (2, 9), (5, 11)], [7, 2], label='11'),
+    'm11':   _q([(0, 1), (3, 3), (7, 5), (10, 7), (5, 11)], [7], extra=[(2, 9)], label='m11'),
+    '13':    _q([(0, 1), (4, 3), (7, 5), (10, 7), (9, 13)], [7], extra=[(2, 9)], label='13'),
 }
+
+# Cómo se muestra cada tipo en el selector de la página (si no está, se usa la clave).
+SUF = {'dim': '°', 'dim7': '°7', 'm7b5': 'm7(b5)', 'aug': '+', 'madd9': 'm(add9)', '7b5': '7(b5)', '7#5': '7(#5)',
+       '7b9': '7(b9)', '7#9': '7(#9)', 'mmaj7': 'm(maj7)', '69': '6/9', 'm69': 'm6/9'}
 
 # Cómo se escribe cada tipo en las cifras (sin paréntesis, que se sacan antes de buscar).
 ALIAS = {
@@ -77,6 +94,19 @@ ALIAS = {
     'dim7': 'dim7', '°7': 'dim7', 'º7': 'dim7', 'o7': 'dim7',
     'm7b5': 'm7b5', 'm7-5': 'm7b5', 'ø': 'm7b5', 'ø7': 'm7b5', 'm75-': 'm7b5', 'm7b5ø': 'm7b5',
     'aug': 'aug', '+': 'aug', '+5': 'aug', '5+': 'aug', '#5': 'aug', 'aum': 'aug',
+    '7b5': '7b5', '7-5': '7b5', '7/b5': '7b5',
+    '7#5': '7#5', '7+5': '7#5', '7/#5': '7#5', '7aug': '7#5', 'aug7': '7#5',
+    '7b9': '7b9', '7-9': '7b9', '7/b9': '7b9',
+    '7#9': '7#9', '7+9': '7#9', '7/#9': '7#9',
+    'mmaj7': 'mmaj7', 'm7M': 'mmaj7', 'mM7': 'mmaj7', 'm7+': 'mmaj7', 'mMaj7': 'mmaj7', 'minmaj7': 'mmaj7',
+    '69': '69', '6/9': '69', '6add9': '69', 'm69': 'm69', 'm6/9': 'm69',
+    '9sus4': '9sus4', '9sus': '9sus4', '9/4': '9sus4',
+    'add11': 'add11', 'add4': 'add11',
+    '11': '11', '711': '11', '7/11': '11', '9/11': '11',
+    'm11': 'm11', 'm711': 'm11', 'm7/11': 'm11',
+    '13': '13', '713': '13', '7/13': '13', '9/13': '13',
+    # Con paréntesis y sin séptima, como en Cifra Club: C(9) es Cadd9 y no C9.
+    '(9)': 'add9', 'm(9)': 'madd9', '(11)': 'add11',
 }
 
 # Un token de acorde. La primera alternativa permite paréntesis dentro del acorde: D7(9), Am7(b5).
@@ -98,7 +128,8 @@ def canon(tok):
     if not m:
         return None
     r, q, b = m.groups()
-    q = q.replace('(', '').replace(')', '')
+    if q not in ALIAS:  # primero tal cual (C(9) = Cadd9), después sin paréntesis (D7(9) = D9)
+        q = q.replace('(', '').replace(')', '')
     if q not in ALIAS:
         return None
     q = ALIAS[q]
@@ -218,6 +249,9 @@ CUR = {k: parse_frets(v) for k, v in {
     'D/C': 'x30232', 'G/F#': '2x0003', 'G/D': 'xx0003', 'F/C': 'x33211', 'F/A': 'x03211', 'E/B': 'x22100',
     'Em/D': 'xx0000', 'Em/B': 'x22000', 'A/E': '002220', 'Dm/C': 'x30231', 'Dm/F': '1x0231', 'Bm/A': 'x04432',
     'C/D': 'xx0010', 'G/A': 'x00003',
+    'E7#9': '076780', 'B7#9': 'x2123x', 'C69': 'x32233', 'G69': '3x2200', 'A69': 'x02422',
+    'Ammaj7': 'x02110', 'Emmaj7': '021000', 'Dmmaj7': 'xx0221', 'G13': '3x345x', 'E13': '020122',
+    'E7#5': '0x0110', 'Cadd11': 'x32011', 'A7b9': 'x02323',
 }.items()}
 
 # Formas móviles: desplazamiento respecto del traste de la raíz (None = no se toca).
@@ -225,13 +259,15 @@ X = None
 ESH = {'': [0, 2, 2, 1, 0, 0], 'm': [0, 2, 2, 0, 0, 0], '7': [0, 2, 0, 1, 0, 0], 'm7': [0, 2, 0, 0, 0, 0],
        'maj7': [0, X, 1, 1, 0, X], 'sus4': [0, 2, 2, 2, 0, 0], '5': [0, 2, 2, X, X, X], 'm6': [0, X, -1, 0, 0, X],
        '6': [0, X, -1, 1, 0, X], '7sus4': [0, 2, 0, 2, 0, 0], 'dim': [0, 1, 2, 0, X, X], 'dim7': [0, X, -1, 0, -1, X],
-       'm7b5': [0, X, 0, 0, -1, X], 'aug': [0, X, 2, 1, 1, X], '9': [0, X, 0, 1, 0, 2], 'm9': [0, X, 0, 0, 0, 2],
-       'add9': [0, X, 2, 1, 0, 2]}
+       'm7b5': [0, X, 0, 0, -1, X], 'aug': [0, X, 2, 1, 1, X], '9': [0, X, 0, 1, 0, 2], 'm9': [0, X, 0, 0, 0, 2], '7b5': [0, X, 0, 1, -1, X], '7#5': [0, X, 0, 1, 1, X], '13': [0, X, 0, 1, 2, X],
+       'mmaj7': [0, X, 1, 0, 0, X]}
 ASH = {'': [X, 0, 2, 2, 2, 0], 'm': [X, 0, 2, 2, 1, 0], '7': [X, 0, 2, 0, 2, 0], 'm7': [X, 0, 2, 0, 1, 0],
        'maj7': [X, 0, 2, 1, 2, 0], 'sus4': [X, 0, 2, 2, 3, 0], 'sus2': [X, 0, 2, 2, 0, 0], '5': [X, 0, 2, 2, X, X],
        'm6': [X, 0, 2, 2, 1, 2], '6': [X, 0, 2, 2, 2, 2], '7sus4': [X, 0, 2, 0, 3, 0], 'dim': [X, 0, 1, 2, 1, X],
        'dim7': [X, 0, 1, -1, 1, X], 'm7b5': [X, 0, 1, 0, 1, X], 'aug': [X, 0, 3, 2, 2, 1], '9': [X, 0, -1, 0, 0, 0],
-       'm9': [X, 0, -2, 0, 0, 0], 'maj9': [X, 0, -1, 1, 0, X], 'add9': [X, 0, -1, -3, 0, 0], 'madd9': [X, 0, -2, -3, 0, X]}
+       'm9': [X, 0, -2, 0, 0, 0], 'maj9': [X, 0, -1, 1, 0, X], 'add9': [X, 0, -1, -3, 0, X], 'madd9': [X, 0, -2, -3, 0, X],
+       '7b9': [X, 0, -1, 0, -1, X], '7#9': [X, 0, -1, 0, 1, X], 'mmaj7': [X, 0, 2, 1, 1, 0], '69': [X, 0, -1, -1, 0, 0],
+       'm69': [X, 0, -2, -1, 0, 0], '9sus4': [X, 0, 0, 0, 0, 0], '11': [X, 0, 0, 0, 0, X]}
 DSH = {'': [X, X, 0, 2, 3, 2], 'm': [X, X, 0, 2, 3, 1], '7': [X, X, 0, 2, 1, 2], 'm7': [X, X, 0, 2, 1, 1],
        'maj7': [X, X, 0, 2, 2, 2], 'sus4': [X, X, 0, 2, 3, 3], 'sus2': [X, X, 0, 2, 3, 0], '6': [X, X, 0, 2, 0, 2],
        'm6': [X, X, 0, 2, 0, 1], '7sus4': [X, X, 0, 2, 1, 3], 'dim': [X, X, 0, 1, 3, 1], 'dim7': [X, X, 0, 1, 0, 1],
@@ -254,8 +290,30 @@ def cost(fr):
     open_mix = bool(any(f == 0 for f in fr) and fz and max(fz) >= 4)
     pressed = [i for i, f in enumerate(fr) if f > 0]
     inner_open = sum(1 for i, f in enumerate(fr) if f == 0 and pressed and min(pressed) < i < max(pressed))
-    return (2 * fingers(fr) + 1.5 * span(fr) + 1.0 * (min(fz) if fz else 0)
+    return (2 * fingers(fr) + 1.5 * span(fr) + (1.5 if span(fr) >= 3 else 0) + 1.0 * (min(fz) if fz else 0)
+            + (3 if fz and min(fz) >= 10 else 0)
             + 4 * open_mix + 1.2 * (6 - snd) + 2.5 * inner_mute + 2 * inner_open + (0.5 if barre(fr) else 0))
+
+
+def natural(fr):
+    """Filtro para lo que propone el buscador (las posiciones conocidas y las formas no pasan por acá)."""
+    fz = [f for f in fr if f > 0]
+    if not fz:
+        return True
+    # Cuerdas al aire solo cerca de la cejuela: 0 2 5 0 x x no.
+    if any(f == 0 for f in fr) and max(fz) > 3:
+        return False
+    # Abrir cuatro trastes con cejilla (5 3 2 2 5 x, 7 6 4 4 4 5) no se toca.
+    if span(fr) == 3 and barre(fr):
+        return False
+    # Dos o más cuerdas al aire metidas entre cuerdas pisadas (x x 2 0 0 3) no.
+    pressed = [i for i, f in enumerate(fr) if f > 0]
+    if sum(1 for i, f in enumerate(fr) if f == 0 and min(pressed) < i < max(pressed)) >= 2:
+        return False
+    # Bajo en la 6ª con el meñique, en el traste más alto, y cuatro dedos (7 5 5 7 x x): no.
+    if fr[0] > 0 and fr[0] == max(fz) and fingers(fr) >= 4 and span(fr) >= 2:
+        return False
+    return True
 
 
 def solve(rp, q, bp, limit=8):
@@ -273,8 +331,7 @@ def solve(rp, q, bp, limit=8):
             snd = sum(1 for f in fr if f >= 0)
             if snd < 4 and len(QUAL[q]['iv']) > 2:
                 continue
-            fz = [f for f in fr if f > 0]
-            if any(f == 0 for f in fr) and fz and max(fz) > 5:
+            if not natural(fr):
                 continue
             first = next(i for i, f in enumerate(fr) if f >= 0)
             last = max(i for i, f in enumerate(fr) if f >= 0)
@@ -326,7 +383,7 @@ def variants(key, rp, q, bp, own=()):
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, 'herramientas', 'acordes_cache.json')
 PROPIOS = os.path.join(ROOT, 'datos', 'acordes.json')
-VERSION = '2'
+VERSION = '3'
 
 
 def cargar_propios():
@@ -400,4 +457,5 @@ def para_pagina():
         'X': {q: [[s, g] for s, g in d['extra']] for q, d in QUAL.items() if d['extra']},
         'A': ALIAS,
         'L': [[q, d['label']] for q, d in QUAL.items()],
+        'S': SUF,
     }
