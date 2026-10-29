@@ -103,7 +103,7 @@ def cnt(k): return sum(1 for s in songs if s['r'] and k in s['pl'] and k not in 
 members=''.join('<li class="mem %s"><b>%s</b><span>%s</span><em>%d temas</em></li>'%(k,html.escape(n),html.escape(i),cnt(k)) for k,n,i,_ in M)
 filt='<button class="f on" data-f="all" type="button">Todos</button>'+''.join('<button class="f" data-f="%s" type="button">%s</button>'%(k,short) for k,_,_,short in M)
 T=open(B+'plantilla.html',encoding='utf-8').read()
-DICT=json.dumps(CD.build_dict(USED),separators=(',',':'),ensure_ascii=False)
+DICT=json.dumps(CD.build_dict(USED),sort_keys=True,separators=(',',':'),ensure_ascii=False)
 T=T.replace('__DICT__',DICT).replace('__USED__',json.dumps([[k,FIRST[k]] for k in sorted(USED,key=lambda k:(CD.canon(k)[1],list(CD.QUAL).index(CD.canon(k)[2]),k))],ensure_ascii=False)).replace('__META__',json.dumps(CD.para_pagina(),ensure_ascii=False,separators=(',',':'))).replace('__MEMBERS__',members).replace('__FILTER__',filt).replace('__MATRIX__',tbl).replace('__SONGS__','\n'.join(cards)).replace('__N__',str(len([s for s in songs if s['r']])))
 open(ROOT+'index.html','w',encoding='utf-8').write(T)
 print(len(T))
