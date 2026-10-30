@@ -166,7 +166,7 @@
  {
   "id": "juntos",
   "title": "Juntos a la Par",
-  "artist": "",
+  "artist": "Pappo",
   "ronda": 2,
   "players": {
    "d": "",
@@ -174,9 +174,9 @@
    "g": ""
   },
   "tentativos": [],
-  "nota": "Los tres. Los acordes todavía no están cargados.",
-  "fuente": null,
-  "chart": null
+  "nota": "Los tres. Cifra solo con acordes, sin letra.",
+  "fuente": "https://acordes.lacuerda.net/pappo/juntos_a_la_par.shtml",
+  "chart": "Tono: G\n\n[Intro] Cadd9  G  Am  D  G  C  G\n\n[Estrofa] x2\nC   F/C   C   G\nAm7   D   G   C   G\n\n[Solo]\nC   G   Am7   D\nG  Am  Bm  C  Bm  Am  G\n\n[Última estrofa]\nC   F/C   C   G\nAm7   D   G   C   G\n\n[Final] Am7   D   F   C   G"
  },
  {
   "id": "raros",
