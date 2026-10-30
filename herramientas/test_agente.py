@@ -56,13 +56,15 @@ class Pruebas(unittest.TestCase):
         self.datos = os.path.join(self.tmp, 'canciones.json')
         with open(self.datos, 'w', encoding='utf-8') as f:
             json.dump([{'id': 'vieja', 'title': 'Canción Vieja', 'artist': '', 'ronda': 1, 'players': {},
-                        'tentativos': [], 'nota': '', 'fuente': None, 'chart': 'Am\nhola'}], f)
-        self.orig = (A.DATOS, A.llamar_modelo)
+                        'tentativos': [], 'nota': '', 'fuente': None}], f)
+        self.orig = (A.DATOS, A.llamar_modelo, A.cifras.DIR)
         A.DATOS = self.datos
+        A.cifras.DIR = os.path.join(self.tmp, 'cifras')
+        A.cifras.guardar('vieja', 'Am\nhola')
         self.bloques, self.links, _ = A.extraer(PAGINA)
 
     def tearDown(self):
-        A.DATOS, A.llamar_modelo = self.orig
+        A.DATOS, A.llamar_modelo, A.cifras.DIR = self.orig
         shutil.rmtree(self.tmp)
 
     def test_extrae_bloques_pre_con_espacios(self):
@@ -109,6 +111,8 @@ class Pruebas(unittest.TestCase):
         self.assertEqual((nueva['id'], nueva['ronda'], nueva['players']),
                          ('cancion-de-prueba', 2, {'d': '', 's': '', 'g': '', 'j': ''}))
         self.assertTrue(os.path.exists(self.datos + '.bak'))
+        self.assertNotIn('chart', nueva)
+        self.assertIn('Am               G', A.cifras.leer('cancion-de-prueba'))
         with mock.patch('subprocess.run'):
             with self.assertRaises(A.Error):
                 A.principal(['--html', ruta])          # ya existe

@@ -34,6 +34,9 @@ import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import cifras  # noqa: E402
 from html.parser import HTMLParser
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -316,9 +319,11 @@ def integrar(canciones, titulo, artista, cifra, args, fuente):
         if not args.reemplazar:
             raise Error('"%s" ya está en el cancionero%s. Usá --reemplazar para cambiarle la cifra '
                         '(se conservan ronda y quiénes tocan).'
-                        % (existente['title'], ' con cifra' if existente.get('chart') else ' sin cifra'))
-        existente['chart'] = cifra
+                        % (existente['title'], ' con cifra' if cifras.leer(existente['id']) else ' sin cifra'))
+        cifras.guardar(existente['id'], cifra)
         existente['fuente'] = fuente
+        if args.nota:
+            existente['nota'] = args.nota
         if not existente.get('artist') and artista:
             existente['artist'] = artista
         return canciones, 'reemplazada la cifra de'
@@ -338,7 +343,8 @@ def integrar(canciones, titulo, artista, cifra, args, fuente):
     else:
         players, tent = {}, []
     canciones.append({'id': nuevo_id, 'title': titulo, 'artist': artista, 'ronda': ronda, 'players': players,
-                      'tentativos': tent, 'nota': args.nota or '', 'fuente': fuente, 'chart': cifra})
+                      'tentativos': tent, 'nota': args.nota or '', 'fuente': fuente})
+    cifras.guardar(nuevo_id, cifra)
     # las canciones fuera de rondas quedan al final, igual que antes
     return canciones, 'agregada'
 

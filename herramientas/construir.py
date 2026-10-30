@@ -6,7 +6,13 @@ sys.path.insert(0,B)
 import chords as CD
 M=[('d','Diego Correa','Guitarra · Voz','Diego'),('s','Sebastian Vazquez Montoto','Batería','Seba'),('g','Sergio Alvarez','Bajo · Voz','Sergio'),('a','Agustín Alvarez','Teclado','Agustín'),('j','Juan Alvarez','Guitarra · Voz','Juan'),('c','Cyntia','Voz','Cyn')]
 LAB={'d':'Guitarra','s':'Batería','g':'Bajo','a':'Teclado','j':'Guitarra','c':'Voz'}
+import cifras as CF
 DATA=json.load(open(ROOT+'datos/canciones.json',encoding='utf-8'))
+# Las cifras viven en datos/cifras/<id>.txt; un archivo sin entrada en canciones.json aparece fuera de las rondas.
+DATA+= [dict(x,ronda=0,players={},tentativos=[],nota='',fuente=None) for x in CF.sueltas({s['id'] for s in DATA})]
+for s in DATA:
+    t=CF.leer(s['id'])
+    if t: s['chart']=t
 C={s['id']:{'text':s['chart']} for s in DATA if s.get('chart')}
 songs=[dict(id=s['id'],title=s['title'],artist=s.get('artist') or '',r=s.get('ronda',0),chart=(s['id'] if s.get('chart') else None),pl=s.get('players',{}),note=s.get('nota') or '',tent=set(s.get('tentativos',[])),fuente=s.get('fuente')) for s in DATA]
 # tentative from '?' marks: P(tent=True) gave plain dict; mark via tent set

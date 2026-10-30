@@ -6,13 +6,29 @@ Página: https://fulgura.github.io/tocamosmusica/
 
 ## Cómo está armado
 
-- `datos/canciones.json`: todas las canciones (ronda, quiénes tocan, cifra).
+- `datos/canciones.json`: todas las canciones (ronda, quiénes tocan, notas).
+- `datos/cifras/<id>.txt`: la cifra de cada canción, en texto, tal cual se pega de La Cuerda o Cifra Club.
 - `datos/acordes.json`: posiciones de acordes propias de la banda (van primero en el diccionario).
 - `herramientas/chords.py`: el diccionario de acordes (reconoce los acordes y arma las posiciones).
 - `herramientas/construir.py`: genera `index.html` a partir de esos datos.
 - `herramientas/agregar_cancion.py`: el agente que agrega una canción desde una página de cifras.
 
-`index.html` es un archivo generado. Los cambios van en `datos/` y se regenera.
+`index.html` es un archivo generado. Los cambios van en `datos/` y GitHub lo regenera solo
+(la acción "Construir la página", en `.github/workflows/construir.yml`).
+
+## Cargar o corregir una cifra desde github.com
+
+No hace falta instalar nada ni correr Python:
+
+1. En el repositorio, entrá a `datos/cifras/`.
+2. Para un tema nuevo o sin cifra: "Add file → Create new file" y ponele de nombre el id del tema
+   más `.txt` (por ejemplo `juntos.txt`; los ids están en `datos/canciones.json`).
+   Para corregir uno que ya está: abrí el archivo y tocá el lápiz.
+3. Pegá la cifra completa, con los acordes arriba de cada línea, y "Commit changes".
+
+En un par de minutos la página se actualiza. El encabezado y el pie de La Cuerda se sacan solos.
+Si el archivo no corresponde a ningún tema de `canciones.json`, aparece en "Fuera de las rondas"
+con el título y el artista del encabezado; para ponerlo en una ronda, agregalo a `canciones.json`.
 
 ## Agregar una canción con el agente
 
@@ -73,7 +89,7 @@ Después se corre `python3 herramientas/construir.py`. Las posiciones calculadas
 ## Pruebas
 
 ```
-cd herramientas && python3 test_agente.py && python3 test_acordes.py
+cd herramientas && python3 test_cifras.py && python3 test_acordes.py && python3 test_agente.py
 ```
 
 Las pruebas no usan la API ni ningún sitio: trabajan con una página inventada.

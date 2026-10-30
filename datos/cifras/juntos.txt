@@ -1,0 +1,17 @@
+Tono: G
+
+[Intro] Cadd9  G  Am  D  G  C  G
+
+[Estrofa] x2
+C   F/C   C   G
+Am7   D   G   C   G
+
+[Solo]
+C   G   Am7   D
+G  Am  Bm  C  Bm  Am  G
+
+[Última estrofa]
+C   F/C   C   G
+Am7   D   G   C   G
+
+[Final] Am7   D   F   C   G
